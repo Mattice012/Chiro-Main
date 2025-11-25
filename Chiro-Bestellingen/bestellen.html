@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chiro Bestellingen: Brood & Beleg</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="Chirologo_1200px.png" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Activeer dark mode via class
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .sticky-header { position: sticky; top: 0; z-index: 40; transition: all 0.3s ease; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item.active svg { stroke-width: 3px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25); }
+        
+        /* Datum Selector Styles */
+        .date-picker-label { position: relative; display: inline-flex; align-items: center; cursor: pointer; user-select: none; -webkit-user-select: none; }
+        .date-picker-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 20; min-height: 40px; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Toast Animation */
+        .toast-enter { animation: toastPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes toastPop { 
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } 
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 
+        }
+
+        /* Success Check Animation */
+        .checkmark-circle { width: 80px; height: 80px; position: relative; display: inline-block; vertical-align: top; margin: 0 auto; }
+        .checkmark-circle .background { width: 80px; height: 80px; border-radius: 50%; background: #DCFCE7; position: absolute; }
+        .checkmark-circle .checkmark { border-radius: 5px; }
+        .checkmark-circle .checkmark.draw:after { animation-delay: 100ms; animation-duration: 1s; animation-timing-function: ease; animation-name: checkmark; transform: scaleX(-1) rotate(135deg); animation-fill-mode: forwards; }
+        .checkmark-circle .checkmark:after { opacity: 1; height: 40px; width: 20px; transform-origin: left top; border-right: 4px solid #16A34A; border-top: 4px solid #16A34A; content: ''; left: 22px; top: 40px; position: absolute; }
+        @keyframes checkmark { 0% { height: 0; width: 0; opacity: 1; } 20% { height: 0; width: 20px; opacity: 1; } 40% { height: 40px; width: 20px; opacity: 1; } 100% { height: 40px; width: 20px; opacity: 1; } }
+
+        /* ADMIN CONTENT BEVEILIGING */
+        section.admin-only { display: none !important; }
+        body.is-admin section.admin-only { display: block !important; }
+        body.is-admin section.admin-only.hidden { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen pb-24 sm:pb-8 text-gray-800 bg-[#f3f4f6] dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
+
+    <header class="sticky-header bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-8 shadow-sm transition-colors duration-200">
+        <div class="flex justify-between items-center max-w-5xl mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg">
+                    <i data-lucide="utensils-crossed" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">Chiro Bestellingen</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1">
+                        Brood & Beleg
+                        <span id="admin-badge" class="hidden bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 border border-yellow-200 dark:border-yellow-700">Admin</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <nav class="hidden sm:flex space-x-2 mr-4">
+                    <button onclick="showView('orderForm')" class="desktop-nav-btn px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" data-target="orderForm">
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i> Bestellen
+                    </button>
+                    <button onclick="showView('preparation')" class="desktop-nav-btn px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" data-target="preparation">
+                        <i data-lucide="package-check" class="w-4 h-4"></i> Klaarzetten
+                    </button>
+                    <button onclick="showView('stock')" class="desktop-nav-btn px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition items-center gap-2" data-target="stock">
+                        <i data-lucide="boxes" class="w-4 h-4"></i> Voorraad
+                        <i data-lucide="lock" class="w-3 h-3 ml-1 text-gray-400 admin-lock-icon"></i>
+                    </button>
+                    <button onclick="showView('settings')" class="desktop-nav-btn px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition items-center gap-2" data-target="settings">
+                        <i data-lucide="coins" class="w-4 h-4"></i> Kosten
+                        <i data-lucide="lock" class="w-3 h-3 ml-1 text-gray-400 admin-lock-icon"></i>
+                    </button>
+                </nav>
+
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400">
+                    <i data-lucide="moon" id="moon-icon" class="w-5 h-5 block dark:hidden"></i>
+                    <i data-lucide="sun" id="sun-icon" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                </button>
+
+                <button onclick="toggleLogin()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 relative group">
+                    <i data-lucide="lock" id="lock-icon" class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"></i>
+                    <i data-lucide="log-out" id="unlock-icon" class="w-5 h-5 hidden text-red-500 group-hover:text-red-700"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+        
+        <div id="toast" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800/95 backdrop-blur-sm text-white px-8 py-6 rounded-2xl shadow-2xl z-[100] hidden flex-col items-center justify-center gap-3 text-center min-w-[250px] toast-enter">
+            <div class="bg-white/10 p-3 rounded-full mb-1">
+                <i data-lucide="check-circle" class="w-8 h-8 text-green-400"></i>
+            </div>
+            <span id="toast-msg" class="font-bold text-lg">Melding</span>
+        </div>
+
+        <div id="login-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-xs overflow-hidden">
+                <div class="p-6 text-center">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-400">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 dark:text-white text-lg mb-2">Admin Login</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Log in met je Admin account.</p>
+                    
+                    <form onsubmit="handleFirebaseLogin(event)" class="space-y-3">
+                        <input type="email" id="login-email" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Email adres" required>
+                        <input type="password" id="login-password" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Wachtwoord" required>
+                        
+                        <div class="flex gap-2 pt-2">
+                            <button type="button" onclick="closeModals()" class="flex-1 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">Annuleer</button>
+                            <button type="submit" class="flex-1 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md flex justify-center items-center gap-2">
+                                <span id="login-btn-text">Inloggen</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="logout-confirm-modal" class="fixed inset-0 bg-gray-900/40 z-50 hidden flex items-center justify-center p-4 backdrop-blur-md fade-in transition-all duration-300">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 border border-white/20 dark:border-gray-700">
+                <div class="p-8 text-center">
+                    <div class="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm ring-8 ring-red-50/50 dark:ring-red-900/10">
+                        <div class="bg-red-100 dark:bg-red-800/30 w-12 h-12 rounded-full flex items-center justify-center">
+                            <i data-lucide="log-out" class="w-6 h-6 text-red-600 dark:text-red-400 ml-1"></i>
+                        </div>
+                    </div>
+                    <h3 class="font-black text-gray-900 dark:text-white text-2xl mb-2 tracking-tight">Uitloggen?</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed font-medium">Je staat op het punt je sessie te beëindigen.<br>Niet opgeslagen wijzigingen zijn veilig.</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="closeModals()" class="py-3.5 px-4 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl transition duration-200 border border-gray-200 dark:border-gray-600">
+                            Annuleren
+                        </button>
+                        <button onclick="performLogout()" class="py-3.5 px-4 text-sm font-bold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-xl shadow-lg shadow-red-200 dark:shadow-none transition duration-200 flex justify-center items-center gap-2 group transform active:scale-95">
+                            <span>Uitloggen</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="logout-modal" class="fixed inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl z-50 hidden flex flex-col items-center justify-center p-4 fade-in">
+            <div class="text-center max-w-sm w-full bg-white dark:bg-gray-800 p-10 rounded-[2rem] shadow-2xl transform scale-100 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                
+                <div class="checkmark-circle mb-8 scale-125">
+                    <div class="background dark:bg-green-900/30"></div>
+                    <div class="checkmark draw dark:after:border-green-400"></div>
+                </div>
+                <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Tot ziens!</h2>
+                <p class="text-gray-500 dark:text-gray-400 mb-10 font-medium text-sm">Je bent veilig uitgelogd.<br>Bedankt voor je inzet vandaag! 👋</p>
+                
+                <button onclick="closeLogoutScreen()" class="w-full py-4 bg-gray-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-2xl font-bold shadow-xl shadow-gray-200 dark:shadow-none transform transition hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-base group">
+                    <i data-lucide="home" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    Terug naar start
+                </button>
+            </div>
+            <div class="absolute bottom-8 text-center opacity-30">
+                <div class="w-8 h-8 bg-gray-900 dark:bg-white rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i data-lucide="utensils-crossed" class="w-4 h-4 text-white dark:text-gray-900"></i>
+                </div>
+                <p class="text-[10px] font-bold text-gray-900 dark:text-white uppercase tracking-widest">Chiro Bestellingen</p>
+            </div>
+        </div>
+
+        <div id="financial-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+                <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+                    <div>
+                        <h3 id="modal-title" class="font-bold text-gray-800 dark:text-white text-lg">Details</h3>
+                        <p id="modal-subtitle" class="text-xs text-gray-500 dark:text-gray-400">Overzicht bestellingen</p>
+                    </div>
+                    <button onclick="closeFinancialModal()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition text-gray-500 dark:text-gray-400">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div id="modal-content" class="p-4 overflow-y-auto space-y-3 bg-gray-50/50 dark:bg-gray-900/50"></div>
+                <div class="p-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-right shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <span id="modal-total" class="font-bold text-blue-600 dark:text-blue-400 text-xl"></span>
+                </div>
+            </div>
+        </div>
+
+        <section id="orderForm" class="view fade-in">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i data-lucide="shopping-cart" class="text-blue-600 dark:text-blue-400"></i>
+                        Bestellen
+                    </h2>
+                    <label class="date-picker-label group" onclick="safeOpenPicker()">
+                        <input type="date" id="date-input" class="date-picker-input" onchange="changeDate(this.value)">
+                        <div class="flex items-center gap-2 text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition shadow-sm">
+                            <i data-lucide="calendar" class="w-3 h-3"></i>
+                            <span id="current-date-display">Laden...</span>
+                            <i data-lucide="chevron-down" class="w-3 h-3 opacity-50"></i>
+                        </div>
+                    </label>
+                </div>
+
+                <form id="order-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Jouw Email (Leiding)</label>
+                            <div class="relative">
+                                <i data-lucide="mail" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
+                                <input type="email" id="email" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition" placeholder="leiding@chiro.be">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Afdeling</label>
+                            <div class="relative">
+                                <i data-lucide="users" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
+                                <select id="department" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition appearance-none">
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="font-semibold text-gray-700 dark:text-gray-200">Brood nodig deze week?</span>
+                            <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out">
+                                <input type="checkbox" id="needsBreadToggle" class="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 checked:bg-blue-600 border-gray-300 checked:border-blue-600 transition-all duration-200" checked/>
+                                <label for="needsBreadToggle" class="block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="bread-fields" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-gray-700 p-3 border dark:border-gray-600 rounded-xl text-center">
+                            <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Wit Brood</span>
+                            <input type="number" id="whiteBread" min="0" value="0" class="w-full text-center font-bold text-xl p-1 rounded dark:bg-gray-700 dark:text-white focus:bg-blue-50 dark:focus:bg-blue-900/30">
+                        </div>
+                        <div class="bg-white dark:bg-gray-700 p-3 border dark:border-gray-600 rounded-xl text-center">
+                            <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Bruin Brood</span>
+                            <input type="number" id="brownBread" min="0" value="0" class="w-full text-center font-bold text-xl p-1 rounded dark:bg-gray-700 dark:text-white focus:bg-blue-50 dark:focus:bg-blue-900/30">
+                        </div>
+                        <div class="bg-white dark:bg-gray-700 p-3 border dark:border-gray-600 rounded-xl text-center">
+                            <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Choco</span>
+                            <input type="number" id="choco" min="0" value="0" class="w-full text-center font-bold text-xl p-1 rounded dark:bg-gray-700 dark:text-white focus:bg-blue-50 dark:focus:bg-blue-900/30">
+                        </div>
+                        <div class="bg-white dark:bg-gray-700 p-3 border dark:border-gray-600 rounded-xl text-center">
+                            <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Confituur</span>
+                            <input type="number" id="jam" min="0" value="0" class="w-full text-center font-bold text-xl p-1 rounded dark:bg-gray-700 dark:text-white focus:bg-blue-50 dark:focus:bg-blue-900/30">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Opmerking / Mededeling</label>
+                        <textarea id="order-note" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none" placeholder="Algemene mededelingen?"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/30 active:scale-[0.98] transition flex justify-center items-center gap-2">
+                        <span>Bestelling Doorsturen</span>
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-6">
+                <div class="flex justify-between items-center mb-3 px-1">
+                    <h3 id="orders-list-header" class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase">Reeds besteld...</h3>
+                    <span class="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full" id="order-count-badge">0 bestellingen</span>
+                </div>
+                <div id="department-orders-list" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <section id="preparation" class="view hidden fade-in">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i data-lucide="check-square" class="text-green-600 dark:text-green-400"></i>
+                        Totaaloverzicht
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-200 dark:border-gray-600">
+                        <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase">Witte Broden</div>
+                        <div class="text-3xl font-black text-gray-800 dark:text-white" id="total-whiteBread">0</div>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-200 dark:border-gray-600">
+                        <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase">Bruine Broden</div>
+                        <div class="text-3xl font-black text-gray-800 dark:text-white" id="total-brownBread">0</div>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-200 dark:border-gray-600">
+                        <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase">Potten Choco</div>
+                        <div class="text-3xl font-black text-gray-800 dark:text-white" id="total-choco">0</div>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-200 dark:border-gray-600">
+                        <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase">Potten Confituur</div>
+                        <div class="text-3xl font-black text-gray-800 dark:text-white" id="total-jam">0</div>
+                    </div>
+                </div>
+                <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-4">Per Afdeling (Vaste Volgorde)</h3>
+                <div class="space-y-4" id="detailed-preparation-list"></div>
+            </div>
+        </section>
+
+        <section id="stock" class="view admin-only hidden fade-in">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h2 class="text-xl font-bold flex items-center gap-2 mb-6">
+                    <i data-lucide="package" class="text-purple-600 dark:text-purple-400"></i>
+                    Voorraad Beheer
+                </h2>
+                <div class="mb-8">
+                    <div class="flex justify-between items-end mb-4 border-b dark:border-gray-700 pb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-800 dark:text-white text-lg">Beleg & Verbruik</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Wordt real-time bijgewerkt</p>
+                        </div>
+                        <button onclick="toggleAddStockModal()" class="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            Aankoop
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl border border-gray-200 dark:border-gray-600 flex flex-col items-center text-center shadow-sm">
+                            <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-3">Potten Choco</span>
+                            <span id="stock-choco" class="text-4xl font-black text-gray-800 dark:text-white tracking-tight">0</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl border border-gray-200 dark:border-gray-600 flex flex-col items-center text-center shadow-sm">
+                            <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-3">Potten Confituur</span>
+                            <span id="stock-jam" class="text-4xl font-black text-gray-800 dark:text-white tracking-tight">0</span>
+                        </div>
+                    </div>
+                    <div id="add-stock-panel" class="hidden mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800 animate-fade-in">
+                        <h4 class="text-sm font-bold text-green-800 dark:text-green-300 mb-2">Nieuwe aankoop invoeren</h4>
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <label class="text-xs text-green-700 dark:text-green-400 block mb-1">Choco (+)</label>
+                                <input type="number" id="add-choco-input" class="w-full rounded-lg border-green-200 dark:border-green-700 dark:bg-green-900/30 dark:text-white p-2 text-center" placeholder="0">
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-xs text-green-700 dark:text-green-400 block mb-1">Confituur (+)</label>
+                                <input type="number" id="add-jam-input" class="w-full rounded-lg border-green-200 dark:border-green-700 dark:bg-green-900/30 dark:text-white p-2 text-center" placeholder="0">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="confirmAddStock()" class="bg-green-600 text-white p-2.5 rounded-lg hover:bg-green-700 shadow-sm"><i data-lucide="save" class="w-5 h-5"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 dark:text-white text-lg mb-1">Brood (Dagvers)</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Totaal nodig voor geselecteerde datum</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                            <p class="text-xs text-gray-400 uppercase">Wit Nodig</p>
+                            <p class="text-xl font-bold text-gray-700 dark:text-gray-300" id="stock-view-white">0</p>
+                        </div>
+                        <div class="p-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                            <p class="text-xs text-gray-400 uppercase">Bruin Nodig</p>
+                            <p class="text-xl font-bold text-gray-700 dark:text-gray-300" id="stock-view-brown">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="view admin-only hidden fade-in">
+            <div class="space-y-6">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 rounded-2xl p-6 text-white shadow-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-1">Financieel Overzicht</h2>
+                            <p class="text-blue-100 text-sm opacity-80">Automatisch berekend via Database</p>
+                        </div>
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i data-lucide="coins" class="w-6 h-6 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <p class="text-sm text-blue-100 uppercase font-semibold tracking-wide">Totaal verbruik</p>
+                        <p class="text-4xl font-black mt-1" id="total-all-time-cost">€ 0.00</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-800 dark:text-white text-lg flex items-center gap-2">
+                            <i data-lucide="tag" class="w-5 h-5 text-blue-500"></i>
+                            Eenheidsprijzen
+                        </h3>
+                        <button id="edit-prices-btn" onclick="togglePriceEdit()" class="text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 p-2 rounded-lg transition">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div id="prices-display" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Wit</span>
+                            <span id="display-price-white" class="font-mono font-bold text-gray-800 dark:text-gray-200">€ 0.00</span>
+                        </div>
+                        <div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Bruin</span>
+                            <span id="display-price-brown" class="font-mono font-bold text-gray-800 dark:text-gray-200">€ 0.00</span>
+                        </div>
+                        <div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Choco</span>
+                            <span id="display-price-choco" class="font-mono font-bold text-gray-800 dark:text-gray-200">€ 0.00</span>
+                        </div>
+                        <div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Conf</span>
+                            <span id="display-price-jam" class="font-mono font-bold text-gray-800 dark:text-gray-200">€ 0.00</span>
+                        </div>
+                    </div>
+
+                    <div id="prices-edit" class="hidden mt-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Wit (€)</label>
+                                <input type="number" step="0.01" id="price-white" class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-center font-bold" placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Bruin (€)</label>
+                                <input type="number" step="0.01" id="price-brown" class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-center font-bold" placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Choco (€)</label>
+                                <input type="number" step="0.01" id="price-choco" class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-center font-bold" placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold block mb-1">Conf (€)</label>
+                                <input type="number" step="0.01" id="price-jam" class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-center font-bold" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="togglePriceEdit()" class="flex-1 py-2 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-bold transition">
+                                Annuleren
+                            </button>
+                            <button onclick="savePrices()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition flex justify-center items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> Opslaan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center" id="financial-loader">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                </div>
+
+                <div id="financial-months-container" class="space-y-6 hidden"></div>
+                <div id="financial-empty-state" class="hidden flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+                    <i data-lucide="clipboard-x" class="w-12 h-12 mb-3 opacity-20"></i>
+                    <p class="text-sm">Nog geen bestelgeschiedenis gevonden in de database.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <nav class="bottom-nav sm:hidden flex justify-around items-center border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 text-gray-400 transition-colors duration-200">
+        <button onclick="showView('orderForm')" class="nav-item flex flex-col items-center py-3 px-4 active" data-target="orderForm">
+            <i data-lucide="clipboard-list" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-bold">Bestellen</span>
+        </button>
+        <button onclick="showView('preparation')" class="nav-item flex flex-col items-center py-3 px-4" data-target="preparation">
+            <i data-lucide="package-check" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-bold">Klaarzetten</span>
+        </button>
+        <button onclick="showView('stock')" class="nav-item flex flex-col items-center py-3 px-4" data-target="stock">
+            <i data-lucide="boxes" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-bold">Voorraad</span>
+        </button>
+        <button onclick="showView('settings')" class="nav-item flex flex-col items-center py-3 px-4" data-target="settings">
+            <i data-lucide="coins" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-bold">Kosten</span>
+        </button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ==========================================
+        // CONFIGURATIE (VERVANG DOOR JE EIGEN SLEUTELS)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDexnpDt68UFna9_6E5SQAVaz4gAugGAM8",
+            authDomain: "bestellingen-chiro-dab8b.firebaseapp.com",
+            projectId: "bestellingen-chiro-dab8b",
+            storageBucket: "bestellingen-chiro-dab8b.firebasestorage.app",
+            messagingSenderId: "354472597808",
+            appId: "1:354472597808:web:b6d0659d9147a03393d0f5"
+        };
+        // ==========================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Forceer geheugen opslag voor Auth
+        try {
+            await setPersistence(auth, inMemoryPersistence);
+        } catch(e) {
+            console.error("Persistence error:", e);
+        }
+
+        // GLOBALE CONSTANTEN
+        const DEPARTMENTS = ["Sloebers", "Speelclub Jongens", "Speelclub Meisjes", "Rakkers", "Kwiks", "Toppers", "Tippers", "Kerels", "Tip10's", "Aspi's"];
+        const DEFAULT_PRICES = { whiteBread: 2.20, brownBread: 2.20, choco: 4.50, jam: 3.50 };
+        const KEYS = { EMAIL: 'chiro_last_email', DEPT: 'chiro_last_dept', THEME: 'chiro_theme' }; 
+
+        let state = {
+            currentDate: getNextSunday(),
+            orders: [],
+            stock: { choco: 0, jam: 0 },
+            prices: {...DEFAULT_PRICES}, 
+            isAdmin: false,
+            pendingView: null,
+            unsubOrders: null,
+            unsubStock: null,
+            unsubPrices: null
+        };
+
+        // --- DARK MODE LOGIC ---
+        window.toggleDarkMode = function() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem(KEYS.THEME, 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem(KEYS.THEME, 'dark');
+            }
+        }
+
+        // Check theme on load
+        if (localStorage.getItem(KEYS.THEME) === 'dark' || (!localStorage.getItem(KEYS.THEME) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // --- AUTH LOGIC ---
+        window.handleFirebaseLogin = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btnText = document.getElementById('login-btn-text');
+            
+            try {
+                btnText.textContent = "Laden...";
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('login-modal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden'); // Unlock scroll
+                showToast('Succesvol ingelogd', 'success');
+            } catch (error) {
+                console.error(error);
+                let msg = "Er ging iets mis.";
+                if(error.code === 'auth/invalid-credential') msg = "Fout e-mailadres of wachtwoord.";
+                if(error.code === 'auth/too-many-requests') msg = "Te veel pogingen. Probeer later opnieuw.";
+                showToast(msg, 'error');
+            } finally {
+                btnText.textContent = "Inloggen";
+            }
+        }
+
+        window.toggleLogin = function() {
+            document.body.classList.add('overflow-hidden'); // Lock scroll when opening login/logout modal
+            if(state.isAdmin) {
+                document.getElementById('logout-confirm-modal').classList.remove('hidden');
+            } else {
+                const modal = document.getElementById('login-modal');
+                modal.classList.remove('hidden');
+                document.getElementById('login-email').focus();
+            }
+        }
+
+        window.performLogout = function() {
+            document.getElementById('logout-confirm-modal').classList.add('hidden');
+            // NOTE: We do NOT unlock scroll here, because the logout success modal immediately appears
+            signOut(auth).then(() => {
+                document.getElementById('logout-modal').classList.remove('hidden');
+                showView('orderForm');
+                signInAnonymously(auth).catch(err => console.error("Anon reconnect fail:", err));
+            }).catch((e) => {
+                console.error("Logout error:", e);
+                showToast("Fout bij uitloggen", "error");
+                document.body.classList.remove('overflow-hidden'); // Unlock if error
+            });
+        }
+
+        window.closeLogoutScreen = function() {
+            document.getElementById('logout-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden'); // Unlock scroll
+        }
+        
+        window.closeModals = function() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('logout-modal').classList.add('hidden');
+            document.getElementById('logout-confirm-modal').classList.add('hidden');
+            document.getElementById('financial-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden'); // Unlock scroll for all modals
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const isEmailLogin = !user.isAnonymous;
+                setAdminMode(isEmailLogin);
+                subscribeToOrders(state.currentDate);
+                subscribeToStock();
+                subscribeToPrices();
+                if(isEmailLogin && state.pendingView) {
+                    showView(state.pendingView);
+                    state.pendingView = null;
+                }
+            } else {
+                setAdminMode(false);
+                signInAnonymously(auth).catch(e => {
+                    if(e.code === 'auth/admin-restricted-operation') {
+                        subscribeToOrders(state.currentDate);
+                        subscribeToStock();
+                        subscribeToPrices();
+                    }
+                });
+            }
+        });
+
+        // --- CORE LOGIC ---
+
+        function getNextSunday() {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const daysUntilSunday = (7 - dayOfWeek) % 7;
+            const nextSunday = new Date(now);
+            nextSunday.setDate(now.getDate() + daysUntilSunday);
+            const year = nextSunday.getFullYear();
+            const month = String(nextSunday.getMonth() + 1).padStart(2, '0');
+            const day = String(nextSunday.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function init() {
+            lucide.createIcons();
+            document.getElementById('date-input').value = state.currentDate;
+            const e = localStorage.getItem(KEYS.EMAIL);
+            if (e) document.getElementById('email').value = e;
+            const d = localStorage.getItem(KEYS.DEPT);
+            
+            const deptSelect = document.getElementById('department');
+            deptSelect.innerHTML = '<option value="" disabled selected>Kies afdeling</option>' + 
+                                    DEPARTMENTS.map(dept => `<option value="${dept}" ${dept === d ? 'selected' : ''}>${dept}</option>`).join('');
+            
+            renderOrdersList();
+            renderStock();
+
+            // =============== NIEUW: Controleer URL Hash voor navigeren ===============
+            const urlHash = window.location.hash.replace('#', '');
+            const validViews = ['orderForm', 'preparation', 'stock', 'settings'];
+            const initialView = urlHash && validViews.includes(urlHash) ? urlHash : 'orderForm';
+            window.showView(initialView);
+            // =========================================================================
+        }
+
+        // --- LISTENERS ---
+        function subscribeToStock() {
+            if (state.unsubStock) state.unsubStock(); 
+            const stockRef = doc(db, "stock", "main");
+            state.unsubStock = onSnapshot(stockRef, (docSnap) => {
+                if (docSnap.exists()) state.stock = docSnap.data();
+                else {
+                    setDoc(stockRef, { choco: 0, jam: 0 }).catch(e => {});
+                    state.stock = { choco: 0, jam: 0 };
+                }
+                renderStock();
+            }, () => {});
+        }
+
+        function subscribeToPrices() {
+            if (state.unsubPrices) state.unsubPrices();
+            state.unsubPrices = onSnapshot(doc(db, "settings", "prices"), (docSnap) => {
+                state.prices = docSnap.exists() ? docSnap.data() : {...DEFAULT_PRICES};
+                document.getElementById('price-white').value = state.prices.whiteBread;
+                document.getElementById('price-brown').value = state.prices.brownBread;
+                document.getElementById('price-choco').value = state.prices.choco;
+                document.getElementById('price-jam').value = state.prices.jam;
+                document.getElementById('display-price-white').textContent = `€ ${state.prices.whiteBread.toFixed(2)}`;
+                document.getElementById('display-price-brown').textContent = `€ ${state.prices.brownBread.toFixed(2)}`;
+                document.getElementById('display-price-choco').textContent = `€ ${state.prices.choco.toFixed(2)}`;
+                document.getElementById('display-price-jam').textContent = `€ ${state.prices.jam.toFixed(2)}`;
+            }, () => { state.prices = {...DEFAULT_PRICES}; });
+        }
+
+        function subscribeToOrders(dateStr) {
+            if (state.unsubOrders) state.unsubOrders(); 
+            const q = query(collection(db, "orders"), where("date", "==", dateStr));
+            state.unsubOrders = onSnapshot(q, (snapshot) => {
+                state.orders = [];
+                snapshot.forEach((doc) => state.orders.push(doc.data()));
+                updateUI(); 
+            }, () => {});
+        }
+
+        function setAdminMode(isAdmin) {
+            state.isAdmin = isAdmin;
+            const body = document.body;
+            const lock = document.getElementById('lock-icon');
+            const unlock = document.getElementById('unlock-icon');
+            const badge = document.getElementById('admin-badge');
+            const lockIcons = document.querySelectorAll('.admin-lock-icon');
+
+            if(isAdmin) {
+                body.classList.add('is-admin');
+                lock.classList.add('hidden');
+                unlock.classList.remove('hidden');
+                badge.classList.remove('hidden');
+                lockIcons.forEach(el => el.classList.add('hidden'));
+            } else {
+                body.classList.remove('is-admin');
+                lock.classList.remove('hidden');
+                unlock.classList.add('hidden');
+                badge.classList.add('hidden');
+                lockIcons.forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        window.changeDate = function(newDate) {
+            if(!newDate) return;
+            state.currentDate = newDate;
+            subscribeToOrders(newDate); 
+            document.getElementById('department').value = localStorage.getItem(KEYS.DEPT) || "";
+            document.querySelectorAll('#bread-fields input').forEach(i => i.value = 0);
+            document.getElementById('order-note').value = ''; 
+        }
+
+        window.safeOpenPicker = function() {
+            const input = document.getElementById('date-input');
+            try { if(input.showPicker) input.showPicker(); else input.click(); } catch (err) { input.click(); input.focus(); }
+        }
+
+        function updateUI() {
+            const dateObj = new Date(state.currentDate);
+            const formatted = dateObj.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' });
+            document.getElementById('current-date-display').textContent = formatted;
+            const formattedFull = dateObj.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('orders-list-header').textContent = `Reeds besteld voor ${formattedFull.charAt(0).toUpperCase() + formattedFull.slice(1)}`;
+            renderOrdersList(); 
+            renderPreparation(); 
+            renderStock(); 
+            document.getElementById('order-count-badge').textContent = `${state.orders.length} bestelling(en)`;
+            lucide.createIcons();
+        }
+
+        window.showView = function(viewId) {
+            if ((viewId === 'stock' || viewId === 'settings') && !state.isAdmin) {
+                state.pendingView = viewId;
+                window.toggleLogin(); 
+                return;
+            }
+            
+            // Nieuwe regel: werk de URL hash bij
+            window.history.pushState(null, null, `#${viewId}`);
+
+            document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            document.querySelectorAll('.nav-item, .desktop-nav-btn').forEach(btn => {
+                const isActive = btn.dataset.target === viewId;
+                if (btn.classList.contains('nav-item')) {
+                    btn.classList.toggle('active', isActive);
+                    btn.classList.toggle('text-blue-600', isActive);
+                    btn.classList.toggle('text-gray-400', !isActive);
+                    btn.classList.toggle('dark:text-blue-400', isActive);
+                    btn.classList.toggle('dark:text-gray-500', !isActive);
+                } else {
+                    btn.classList.toggle('bg-blue-50', isActive);
+                    btn.classList.toggle('dark:bg-blue-900/40', isActive);
+                    btn.classList.toggle('text-blue-700', isActive);
+                    btn.classList.toggle('dark:text-blue-300', isActive);
+                    btn.classList.toggle('text-gray-600', !isActive);
+                    btn.classList.toggle('dark:text-gray-400', !isActive);
+                }
+            });
+            if (viewId === 'orderForm') renderOrdersList();
+            if (viewId === 'settings') loadAllOrdersHistory(); 
+        }
+
+        window.togglePriceEdit = function() {
+            const display = document.getElementById('prices-display');
+            const edit = document.getElementById('prices-edit');
+            const editBtn = document.getElementById('edit-prices-btn');
+            display.classList.toggle('hidden');
+            edit.classList.toggle('hidden');
+            editBtn.classList.toggle('hidden');
+        }
+
+        window.savePrices = async function() {
+            if(!state.isAdmin) return;
+            const white = parseFloat(document.getElementById('price-white').value);
+            const brown = parseFloat(document.getElementById('price-brown').value);
+            const choco = parseFloat(document.getElementById('price-choco').value);
+            const jam = parseFloat(document.getElementById('price-jam').value);
+
+            if(isNaN(white) || isNaN(brown) || isNaN(choco) || isNaN(jam)) return showToast("Vul alle prijzen correct in", "error");
+
+            try {
+                await setDoc(doc(db, "settings", "prices"), { whiteBread: white, brownBread: brown, choco: choco, jam: jam });
+                showToast("Prijzen bijgewerkt!");
+                togglePriceEdit(); 
+                loadAllOrdersHistory();
+            } catch(e) {
+                showToast("Fout bij opslaan", "error");
+            }
+        }
+
+        document.getElementById('needsBreadToggle').addEventListener('change', (e) => {
+            document.getElementById('bread-fields').classList.toggle('opacity-50', !e.target.checked);
+            document.getElementById('bread-fields').classList.toggle('pointer-events-none', !e.target.checked);
+            if (!e.target.checked) { document.querySelectorAll('#bread-fields input').forEach(i => i.value = 0); }
+        });
+
+        // BESTELLING OPSLAAN
+        document.getElementById('order-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "Versturen...";
+
+            const dept = document.getElementById('department').value;
+            const email = document.getElementById('email').value;
+            const note = document.getElementById('order-note').value;
+            
+            if (!dept) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return showToast('Kies een afdeling!', 'error');
+            }
+
+            const newChoco = parseInt(document.getElementById('choco').value) || 0;
+            const newJam = parseInt(document.getElementById('jam').value) || 0;
+            const existingOrder = state.orders.find(o => o.department === dept);
+            const oldChoco = existingOrder ? existingOrder.items.choco : 0;
+            const oldJam = existingOrder ? existingOrder.items.jam : 0;
+            
+            try {
+                // Update stock if changed
+                const deltaChoco = newChoco - oldChoco;
+                const deltaJam = newJam - oldJam;
+                if(deltaChoco !== 0 || deltaJam !== 0) {
+                     await updateDoc(doc(db, "stock", "main"), {
+                        choco: (state.stock.choco || 0) - deltaChoco,
+                        jam: (state.stock.jam || 0) - deltaJam
+                    }).catch(() => {});
+                }
+
+                const orderData = {
+                    department: dept,
+                    email: email,
+                    date: state.currentDate,
+                    timestamp: Date.now(),
+                    prices: state.prices, 
+                    items: {
+                        whiteBread: parseInt(document.getElementById('whiteBread').value) || 0,
+                        brownBread: parseInt(document.getElementById('brownBread').value) || 0,
+                        choco: newChoco,
+                        jam: newJam
+                    },
+                    note: note 
+                };
+
+                await setDoc(doc(db, "orders", `${state.currentDate}_${dept}`), orderData);
+                localStorage.setItem(KEYS.EMAIL, email);
+                localStorage.setItem(KEYS.DEPT, dept); // Save dept preference
+                showToast('Bestelling opgeslagen!');
+                document.querySelectorAll('#bread-fields input').forEach(i => i.value = 0);
+                document.getElementById('order-note').value = ''; 
+            } catch(err) {
+                if(err.code === 'permission-denied') showToast("Geen rechten! Ben je ingelogd?", "error");
+                else showToast("Fout: " + err.message, "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+
+        // DELETE ORDER
+        window.deleteOrder = async function(deptName) {
+            if(!confirm(`Weet je zeker dat je de bestelling van ${deptName} wilt verwijderen?`)) return;
+
+            const existingOrder = state.orders.find(o => o.department === deptName);
+            if(existingOrder) {
+                // Restore stock
+                const chocoToRestore = existingOrder.items.choco;
+                const jamToRestore = existingOrder.items.jam;
+                if(chocoToRestore > 0 || jamToRestore > 0) {
+                     await updateDoc(doc(db, "stock", "main"), {
+                        choco: (state.stock.choco || 0) + chocoToRestore,
+                        jam: (state.stock.jam || 0) + jamToRestore
+                    }).catch(() => {});
+                }
+            }
+
+            try {
+                await deleteDoc(doc(db, "orders", `${state.currentDate}_${deptName}`));
+                showToast(`Bestelling ${deptName} verwijderd`);
+            } catch(e) {
+                showToast("Fout bij verwijderen", "error");
+            }
+        }
+
+        function renderOrdersList() {
+            const list = document.getElementById('department-orders-list');
+            if (state.orders.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600"><p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Nog geen bestellingen voor deze datum</p></div>`;
+            } else {
+                const sortedOrders = [...state.orders].sort((a, b) => DEPARTMENTS.indexOf(a.department) - DEPARTMENTS.indexOf(b.department));
+                list.innerHTML = sortedOrders.map(order => `
+                    <div class="bg-white dark:bg-gray-700/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow group">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-200 text-lg">${order.department} <span class="text-xs text-gray-400 font-normal block">${order.email.split('@')[0]}</span></h4>
+                            <div class="flex gap-1">
+                                <button onclick="editOrder('${order.department}')" class="text-blue-500 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                <button onclick="deleteOrder('${order.department}')" class="text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            ${order.items.whiteBread > 0 ? `<div class="flex justify-between bg-gray-50 dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-500"><span class="text-xs text-gray-500 dark:text-gray-300 font-medium">Wit</span><span class="font-bold text-gray-800 dark:text-white">${order.items.whiteBread}</span></div>` : ''}
+                            ${order.items.brownBread > 0 ? `<div class="flex justify-between bg-gray-50 dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-500"><span class="text-xs text-gray-500 dark:text-gray-300 font-medium">Bruin</span><span class="font-bold text-gray-800 dark:text-white">${order.items.brownBread}</span></div>` : ''}
+                            ${order.items.choco > 0 ? `<div class="flex justify-between bg-gray-50 dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-500"><span class="text-xs text-gray-500 dark:text-gray-300 font-medium">Choco</span><span class="font-bold text-gray-800 dark:text-white">${order.items.choco}</span></div>` : ''}
+                            ${order.items.jam > 0 ? `<div class="flex justify-between bg-gray-50 dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-500"><span class="text-xs text-gray-500 dark:text-gray-300 font-medium">Conf</span><span class="font-bold text-gray-800 dark:text-white">${order.items.jam}</span></div>` : ''}
+                            ${Object.values(order.items).every(v => v === 0) ? `<div class="col-span-2 flex justify-center bg-gray-50 dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-500 border-dashed"><span class="text-xs text-gray-400 italic">Geen brood nodig</span></div>` : ''}
+                            ${order.note ? `<div class="col-span-2 mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 text-xs rounded-lg border border-yellow-100 dark:border-yellow-900 flex gap-2 items-start"><i data-lucide="message-square" class="w-3 h-3 mt-0.5 shrink-0"></i><span class="italic">${order.note}</span></div>` : ''}
+                        </div>
+                    </div>`).join('');
+            }
+            lucide.createIcons();
+        }
+
+        window.editOrder = function(deptName) {
+            const order = state.orders.find(o => o.department === deptName);
+            if(order) {
+                document.getElementById('department').value = order.department;
+                document.getElementById('email').value = order.email;
+                document.getElementById('needsBreadToggle').checked = true;
+                document.getElementById('bread-fields').classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('whiteBread').value = order.items.whiteBread;
+                document.getElementById('brownBread').value = order.items.brownBread;
+                document.getElementById('choco').value = order.items.choco;
+                document.getElementById('jam').value = order.items.jam;
+                document.getElementById('order-note').value = order.note || '';
+                document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+                showToast(`Bestelling ${deptName} ingeladen`, 'success');
+            }
+        }
+
+        function renderPreparation() {
+            const totals = { whiteBread: 0, brownBread: 0, choco: 0, jam: 0 };
+            state.orders.forEach(o => {
+                totals.whiteBread += o.items.whiteBread;
+                totals.brownBread += o.items.brownBread;
+                totals.choco += o.items.choco;
+                totals.jam += o.items.jam;
+            });
+            document.getElementById('total-whiteBread').textContent = totals.whiteBread;
+            document.getElementById('total-brownBread').textContent = totals.brownBread;
+            document.getElementById('total-choco').textContent = totals.choco;
+            document.getElementById('total-jam').textContent = totals.jam;
+
+            const sortedOrders = [...state.orders].sort((a, b) => DEPARTMENTS.indexOf(a.department) - DEPARTMENTS.indexOf(b.department));
+            const list = document.getElementById('detailed-preparation-list');
+            if (state.orders.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 italic text-center py-8">Nog niets om klaar te zetten.</p>';
+            } else {
+                list.innerHTML = sortedOrders.map(o => {
+                    const rank = DEPARTMENTS.indexOf(o.department) + 1;
+                    return `
+                    <div class="bg-white dark:bg-gray-700/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-600 shadow-sm mb-3">
+                        <h4 class="font-bold text-gray-800 dark:text-gray-200 text-lg border-b border-gray-100 dark:border-gray-600 pb-2 mb-3"><span class="text-gray-300 font-normal mr-2 text-base">#${rank}</span>${o.department}</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2"><p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Brood</p>${o.items.whiteBread > 0 ? `<div class="flex justify-between items-center"><span class="text-sm text-gray-600 dark:text-gray-300">Wit</span><span class="font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-600 px-2 py-0.5 rounded-md">${o.items.whiteBread}</span></div>` : ''}${o.items.brownBread > 0 ? `<div class="flex justify-between items-center"><span class="text-sm text-gray-600 dark:text-gray-300">Bruin</span><span class="font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-600 px-2 py-0.5 rounded-md">${o.items.brownBread}</span></div>` : ''}${o.items.whiteBread === 0 && o.items.brownBread === 0 ? '<span class="text-sm text-gray-400 italic">Geen brood</span>' : ''}</div>
+                            <div class="space-y-2 border-l border-gray-100 dark:border-gray-600 pl-4"><p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Beleg</p>${o.items.choco > 0 ? `<div class="flex justify-between items-center"><span class="text-sm text-gray-600 dark:text-gray-300">Choco</span><span class="font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-600 px-2 py-0.5 rounded-md">${o.items.choco}</span></div>` : ''}${o.items.jam > 0 ? `<div class="flex justify-between items-center"><span class="text-sm text-gray-600 dark:text-gray-300">Confituur</span><span class="font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-600 px-2 py-0.5 rounded-md">${o.items.jam}</span></div>` : ''}${o.items.choco === 0 && o.items.jam === 0 ? '<span class="text-sm text-gray-400 italic">Geen beleg</span>' : ''}</div>
+                        </div>
+                        ${o.note ? `<div class="mt-3 pt-2 border-t border-gray-100 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400 italic flex items-center gap-1"><i data-lucide="info" class="w-3 h-3"></i> ${o.note}</div>` : ''}
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        function renderStock() {
+            if(state.stock.choco !== undefined) document.getElementById('stock-choco').textContent = state.stock.choco;
+            if(state.stock.jam !== undefined) document.getElementById('stock-jam').textContent = state.stock.jam;
+            let totalWhite = 0, totalBrown = 0;
+            state.orders.forEach(o => { totalWhite += o.items.whiteBread; totalBrown += o.items.brownBread; });
+            document.getElementById('stock-view-white').textContent = totalWhite;
+            document.getElementById('stock-view-brown').textContent = totalBrown;
+        }
+
+        window.updateStock = function(item, delta) {
+            state.stock[item] = Math.max(0, (state.stock[item] || 0) + delta);
+        }
+
+        window.toggleAddStockModal = function() { document.getElementById('add-stock-panel').classList.toggle('hidden'); }
+
+        window.confirmAddStock = async function() {
+            const chocoAdd = parseInt(document.getElementById('add-choco-input').value) || 0;
+            const jamAdd = parseInt(document.getElementById('add-jam-input').value) || 0;
+            if(chocoAdd === 0 && jamAdd === 0) return;
+
+            const stockRef = doc(db, "stock", "main");
+            try {
+                await updateDoc(stockRef, {
+                    choco: (state.stock.choco || 0) + chocoAdd,
+                    jam: (state.stock.jam || 0) + jamAdd
+                });
+                showToast(`Voorraad aangevuld`);
+                document.getElementById('add-choco-input').value = '';
+                document.getElementById('add-jam-input').value = '';
+                toggleAddStockModal();
+            } catch(e) {
+                console.error(e);
+                showToast("Fout bij opslaan", "error");
+            }
+        }
+
+        async function loadAllOrdersHistory() {
+            const container = document.getElementById('financial-months-container');
+            const emptyState = document.getElementById('financial-empty-state');
+            const totalAllTimeEl = document.getElementById('total-all-time-cost');
+            const loader = document.getElementById('financial-loader');
+
+            container.innerHTML = '';
+            container.classList.add('hidden');
+            loader.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "orders"));
+                let allOrders = [];
+                querySnapshot.forEach((doc) => allOrders.push(doc.data()));
+
+                loader.classList.add('hidden');
+
+                if (allOrders.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    totalAllTimeEl.textContent = "€ 0.00";
+                    return;
+                }
+                
+                container.classList.remove('hidden');
+                const financials = {};
+                let grandTotal = 0;
+
+                allOrders.forEach(order => {
+                    const monthKey = order.date.substring(0, 7);
+                    if (!financials[monthKey]) financials[monthKey] = { total: 0, departments: {} };
+                    if (!financials[monthKey].departments[order.department]) {
+                        financials[monthKey].departments[order.department] = { whiteBread: 0, brownBread: 0, choco: 0, jam: 0, totalCost: 0 };
+                    }
+                    const stats = financials[monthKey].departments[order.department];
+                    const i = order.items;
+                    stats.whiteBread += i.whiteBread; stats.brownBread += i.brownBread;
+                    stats.choco += i.choco; stats.jam += i.jam;
+                    const p = order.prices || state.prices;
+                    const cost = (i.whiteBread * p.whiteBread) + (i.brownBread * p.brownBread) + (i.choco * p.choco) + (i.jam * p.jam);
+                    stats.totalCost += cost;
+                    financials[monthKey].total += cost;
+                    grandTotal += cost;
+                });
+
+                totalAllTimeEl.textContent = `€ ${grandTotal.toFixed(2)}`;
+                
+                Object.keys(financials).sort().reverse().forEach(monthKey => {
+                    const monthData = financials[monthKey];
+                    const dateObj = new Date(monthKey + "-01");
+                    const monthLabel = dateObj.toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' });
+                    const card = document.createElement('div');
+                    card.className = 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden';
+                    let deptRows = '';
+                    Object.keys(monthData.departments).sort((a, b) => DEPARTMENTS.indexOf(a) - DEPARTMENTS.indexOf(b)).forEach(dept => {
+                        const data = monthData.departments[dept];
+                        const percentage = (data.totalCost / monthData.total) * 100;
+                        deptRows += `
+                            <div onclick="openFinancialDetail('${monthKey}', '${dept}')" class="p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer group">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-gray-800 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-400">${dept}</span>
+                                    <span class="font-mono font-bold text-blue-600 dark:text-blue-400">€ ${data.totalCost.toFixed(2)}</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-blue-500 rounded-full" style="width: ${percentage}%"></div></div>
+                            </div>`;
+                    });
+                    card.innerHTML = `<div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between"><h3 class="font-bold text-gray-700 dark:text-white">${monthLabel}</h3><span class="text-xs font-bold text-gray-600 dark:text-gray-300">€ ${monthData.total.toFixed(2)}</span></div><div class="divide-y divide-gray-50 dark:divide-gray-700">${deptRows}</div>`;
+                    container.appendChild(card);
+                });
+                window.financialDataCache = allOrders;
+            } catch (e) {
+                loader.classList.add('hidden');
+                showToast("Fout bij laden statistieken", "error");
+            }
+        }
+
+        window.openFinancialDetail = function(monthKey, dept) {
+            if(!window.financialDataCache) return;
+            const orders = window.financialDataCache.filter(o => o.department === dept && o.date.substring(0, 7) === monthKey);
+            orders.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const modalContent = document.getElementById('modal-content');
+            let totalCost = 0;
+            modalContent.innerHTML = orders.map(order => {
+                const p = order.prices || state.prices;
+                const cost = (order.items.whiteBread * p.whiteBread) + (order.items.brownBread * p.brownBread) + (order.items.choco * p.choco) + (order.items.jam * p.jam);
+                totalCost += cost;
+                const dateStr = new Date(order.date).toLocaleDateString('nl-BE', {day:'numeric', month:'long'});
+                let itemStrings = [];
+                if(order.items.whiteBread > 0) itemStrings.push(`${order.items.whiteBread} Wit`);
+                if(order.items.brownBread > 0) itemStrings.push(`${order.items.brownBread} Bruin`);
+                if(order.items.choco > 0) itemStrings.push(`${order.items.choco} Choco`);
+                if(order.items.jam > 0) itemStrings.push(`${order.items.jam} Conf`);
+                const itemDisplay = itemStrings.length > 0 ? itemStrings.join(', ') : "Geen items";
+                return `
+                <div class="bg-white dark:bg-gray-700 p-3 rounded-xl border border-gray-100 dark:border-gray-600 shadow-sm">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-gray-800 dark:text-white">${dateStr}</span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400">€ ${cost.toFixed(2)}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                        ${itemDisplay}
+                    </div>
+                      ${order.note ? `<div class="text-[10px] text-gray-400 italic bg-gray-50 dark:bg-gray-600 p-1 rounded border border-gray-100 dark:border-gray-500 inline-block"><i data-lucide="info" class="w-2 h-2 inline mr-1"></i>${order.note}</div>` : ''}
+                </div>`;
+            }).join('');
+            document.getElementById('modal-title').textContent = dept;
+            document.getElementById('modal-total').textContent = `Totaal: € ${totalCost.toFixed(2)}`;
+            document.getElementById('financial-modal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden'); // Lock scroll for details modal
+        }
+
+        window.closeFinancialModal = function() { 
+            document.getElementById('financial-modal').classList.add('hidden'); 
+            document.body.classList.remove('overflow-hidden'); // Unlock scroll
+        }
+
+        window.showToast = function(msg, type='success') {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            t.classList.remove('hidden', 'flex'); t.classList.add('flex');
+            const icon = t.querySelector('svg');
+            t.classList.remove('toast-enter');
+            void t.offsetWidth; 
+            t.classList.add('toast-enter');
+            if(type==='error') { 
+                icon.classList.add('text-red-400'); 
+                icon.classList.remove('text-green-400');
+                icon.innerHTML = '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'; 
+            } else { 
+                icon.classList.add('text-green-400'); 
+                icon.classList.remove('text-red-400');
+                icon.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>'; 
+            }
+            setTimeout(() => { t.classList.add('hidden'); }, 3000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

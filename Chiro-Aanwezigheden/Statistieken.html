@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chiro Registratie Systeem | Leden Statistieken</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="Chirologo_1200px.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <link rel="stylesheet" href="./Styling/Statistieken.css"> 
+
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8 font-sans"> 
+    
+    <div class="w-full max-w-7xl mx-auto">
+        
+        <header class="w-full mb-8 bg-white shadow-xl rounded-xl px-4 py-4 sm:px-8 sm:py-6 border-t-4 border-blue-600">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-extrabold text-gray-800">
+                    <span class="text-blue-600">Statistieken</span> <span class="text-lg font-normal text-gray-500 hidden sm:inline">| Leden Analyse</span>
+                </h1>
+
+                <button id="menu-toggle" class="sm:hidden p-2 text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+
+                <nav id="desktop-nav" class="hidden sm:flex items-center space-x-3">
+                    <a href="Telling.html" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md text-sm font-semibold transition hover:shadow-lg whitespace-nowrap">
+                        Tellen
+                    </a>
+                    <a href="Overzicht.html" 
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-md text-sm font-semibold transition hover:shadow-lg whitespace-nowrap">
+                        Overzicht
+                    </a>
+                    </nav>
+            </div>
+
+            <nav id="mobile-menu" class="hidden sm:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
+                <a href="Telling.html" 
+                    class="block w-full text-center bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg font-semibold transition">
+                    Tellen
+                </a>
+                <a href="Overzicht.html" 
+                    class="block w-full text-center bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-lg font-semibold transition">
+                    Overzicht
+                </a>
+                </nav>
+        </header>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-8 sm:mb-10 hidden sm:block">Statistieken Leden </h1>
+
+
+        <div id="content-container" class="bg-white p-4 sm:p-8 rounded-xl shadow-2xl border border-gray-100">
+            
+            <div class="flex justify-end mb-4">
+                <div id="laadstatus" class="text-gray-500 text-sm italic">Laden...</div>
+            </div>
+
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Globale Opkomst Samenvatting</h2>
+            
+            <div id="stat-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            </div>
+
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mt-10 mb-6 border-b pb-3">Analyse per Afdeling</h2>
+
+            <div id="afdelings-analyse" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+            
+            <div id="chart-wrapper" class="mt-12 pt-6">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Visuele Analyse: Gemiddelde Opkomst per Afdeling</h2>
+                <div class="bg-gray-50 p-4 sm:p-8 rounded-xl border border-gray-200 shadow-inner">
+                    <div class="chart-container">
+                        <canvas id="afdelingAveragesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+        // Auth imports zijn hier niet meer nodig en zijn verwijderd
+        
+        // --- NAVIGATIE TOGGLE FUNCTIE ---
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- FIREBASE CONFIGURATIE (Jouw gegevens) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyARowFAsAFzH3MLNishFGhDvoN8f0dZx2g",
+            authDomain: "chiro-aanwezigheden-2c507.firebaseapp.com",
+            projectId: "chiro-aanwezigheden-2c507",
+            storageBucket: "chiro-aanwezigheden-2c507.firebasestorage.app",
+            messagingSenderId: "800439663397",
+            appId: "1:800439663397:web:3225dc6704320c4427f8cc",
+            measurementId: "G-36V4EYGV3P"
+        };
+        // ---------------------------------------------------
+
+        // ** VASTE VOLGORDE EN KLEUREN (Gestandaardiseerd) **
+        const afdelingenVolgorde = [
+            "Sloebers", "Speelclub Jongens", "Speelclub Meisjes",
+            "Rakkers", "Kwiks", "Toppers", "Tippers",
+            "Kerels", "Tiptiens", "Aspis",
+        ];
+        const afdelingBasisKleuren = {
+            "Sloebers": "purple", "Speelclub Jongens": "yellow", "Speelclub Meisjes": "yellow",
+            "Rakkers": "green", "Kwiks": "green", "Toppers": "red", "Tippers": "red",
+            "Kerels": "blue", "Tiptiens": "blue", "Aspis": "orange",
+        };
+        const afdelingKleurenMap = {
+            "Sloebers": { color: '#8B5CF6', rgb: '139, 92, 246' }, 
+            "Speelclub Jongens": { color: '#EAB308', rgb: '234, 179, 8' }, 
+            "Speelclub Meisjes": { color: '#FCD34D', rgb: '252, 211, 77' }, 
+            "Rakkers": { color: '#10B981', rgb: '16, 185, 129' }, 
+            "Kwiks": { color: '#34D399', rgb: '52, 211, 153' }, 
+            "Toppers": { color: '#EF4444', rgb: '239, 68, 68' }, 
+            "Tippers": { color: '#F87171', rgb: '248, 113, 113' }, 
+            "Kerels": { color: '#3B82F6', rgb: '59, 130, 246' }, 
+            "Tiptiens": { color: '#60A5FA', rgb: '96, 165, 250' }, 
+            "Aspis": { color: '#F97316', rgb: '249, 115, 22' }, 
+        };
+        const fallbackColor = { color: '#6B7280', rgb: '107, 114, 128' }; 
+
+
+        // Initialiseer Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const tellingenCollectie = "aanwezigheden";
+        
+        // DOM Elementen
+        const statCardsContainer = document.getElementById('stat-cards');
+        const afdelingsAnalyseContainer = document.getElementById('afdelings-analyse');
+        const laadStatus = document.getElementById('laadstatus');
+        const afdelingAveragesChartContext = document.getElementById('afdelingAveragesChart') ? document.getElementById('afdelingAveragesChart').getContext('2d') : null;
+        
+        // --- AUTHENTICATIE LOGICA VERWIJDERD ---
+        // We starten de statistieken direct
+        calculateStatistics();
+
+        // DE REST VAN DE FUNCTIES (formatDutchDate, calculateStatistics, renderAfdelingAveragesChart, displayStatCard, displayAfdelingCard)
+        // BLIJVEN HETZELFDE
+        
+        /**
+         * Formatteert een datumstring (YYYY-MM-DD) naar een Nederlandse, leesbare datum.
+         */
+        function formatDutchDate(dateString) {
+            try {
+                const date = new Date(dateString + 'T00:00:00'); 
+                if (isNaN(date)) return dateString;
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                let formatted = date.toLocaleDateString('nl-BE', options);
+                return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+            } catch (e) {
+                return dateString;
+            }
+        }
+        
+        /**
+         * Voert alle statistische berekeningen uit op de Firebase data.
+         */
+        async function calculateStatistics() {
+            laadStatus.textContent = "Data ophalen en berekenen...";
+            statCardsContainer.innerHTML = '';
+            afdelingsAnalyseContainer.innerHTML = '';
+
+            try {
+                const q = query(collection(db, tellingenCollectie), orderBy("datum", "asc"));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    laadStatus.textContent = "Geen data gevonden om statistieken te berekenen.";
+                    return;
+                }
+
+                const allTellingTotals = [];
+                const afdelingsTotaal = {};
+
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    let dagTotaal = 0;
+                    
+                    data.afdelingen.forEach(afd => {
+                        dagTotaal += afd.aantal;
+                        
+                        if (!afdelingsTotaal[afd.naam]) {
+                            afdelingsTotaal[afd.naam] = { totaal: 0, tellingen: 0, hoogste: 0, laagste: Infinity, kleur: afdelingBasisKleuren[afd.naam] || 'gray' };
+                        }
+                        
+                        afdelingsTotaal[afd.naam].totaal += afd.aantal;
+                        
+                        if (afd.aantal > 0) {
+                            afdelingsTotaal[afd.naam].tellingen++; 
+                        }
+                        afdelingsTotaal[afd.naam].hoogste = Math.max(afdelingsTotaal[afd.naam].hoogste, afd.aantal);
+                        
+                        if (afd.aantal > 0) {
+                             afdelingsTotaal[afd.naam].laagste = Math.min(afdelingsTotaal[afd.naam].laagste, afd.aantal);
+                        } 
+                    });
+
+                    allTellingTotals.push({
+                        datum: data.datum,
+                        totaal: dagTotaal
+                    });
+                });
+                
+                // 1. Globale Statistieken berekenen
+                const totaalOpkomst = allTellingTotals.reduce((sum, item) => sum + item.totaal, 0);
+                const aantalTellingen = allTellingTotals.length;
+                const gemiddeldeOpkomst = aantalTellingen > 0 ? (totaalOpkomst / aantalTellingen).toFixed(1) : 0;
+                
+                const hoogsteTelling = allTellingTotals.reduce((max, item) => item.totaal > max.totaal ? item : max, { totaal: -1, datum: '' });
+                // We hoeven de laagste telling niet te tonen als de lijst leeg is, maar we vangen de Infinity-waarde op
+                const laagsteTelling = allTellingTotals.reduce((min, item) => item.totaal < min.totaal ? item : min, { totaal: Infinity, datum: '' });
+                
+                const laagsteTotaalDisplay = laagsteTelling.totaal === Infinity ? '0' : `${laagsteTelling.totaal}`;
+                const laagsteDatumDisplay = laagsteTelling.datum ? formatDutchDate(laagsteTelling.datum) : '—';
+
+
+                // --- Weergave Globale Statistieken ---
+                displayStatCard("Aantal Geregistreerde Dagen", aantalTellingen, "📅", "Totaal aantal getelde Chirodagen");
+                displayStatCard("Gemiddelde Opkomst", gemiddeldeOpkomst, "👥", "Gemiddeld aantal leden per Chirodag");
+                displayStatCard("Hoogste Opkomst", `${hoogsteTelling.totaal}`, "🏆", hoogsteTelling.datum ? `Record op ${formatDutchDate(hoogsteTelling.datum)}` : '—');
+                displayStatCard("Totaal Opkomst", totaalOpkomst.toLocaleString('nl-BE'), "📈", "Totaal aantal aanwezigen dit seizoen");
+
+                
+                // 2. Afdelingskaarten weergeven
+                const gesorteerdeAfdelingen = afdelingenVolgorde.filter(naam => afdelingsTotaal[naam] && afdelingsTotaal[naam].tellingen > 0);
+                
+                gesorteerdeAfdelingen.forEach(naam => {
+                    const afd = afdelingsTotaal[naam];
+                    if (afd.tellingen > 0) {
+                        const gemiddelde = (afd.totaal / afd.tellingen).toFixed(1);
+                        const laagste = afd.laagste === Infinity ? 0 : afd.laagste;
+                        displayAfdelingCard(naam, afd.totaal, gemiddelde, afd.hoogste, laagste, afd.tellingen, afd.kleur);
+                    }
+                });
+                
+                // 3. Afdelingsdiagram Data voorbereiden en Renderen
+                const sortedAfdelingAverages = afdelingenVolgorde
+                    .filter(naam => afdelingsTotaal[naam] && afdelingsTotaal[naam].tellingen > 0)
+                    .map(naam => {
+                        const afd = afdelingsTotaal[naam];
+                        return {
+                            naam,
+                            gemiddelde: afd.tellingen > 0 ? parseFloat((afd.totaal / afd.tellingen).toFixed(1)) : 0,
+                            kleurData: afdelingKleurenMap[naam] || fallbackColor
+                        }
+                    });
+
+                if (afdelingAveragesChartContext) {
+                    renderAfdelingAveragesChart(sortedAfdelingAverages);
+                }
+
+
+                laadStatus.textContent = `Berekeningen succesvol uitgevoerd op basis van ${aantalTellingen} tellingen.`;
+
+            } catch (error) {
+                console.error("Fout bij het berekenen van statistieken:", error);
+                laadStatus.textContent = "Fout bij laden van statistieken ❌. Controleer de console en Firebase Security Rules.";
+            }
+        }
+        
+        // --- CHART RENDERING FUNCTIES ---
+
+        Chart.register(ChartDataLabels); 
+
+        function renderAfdelingAveragesChart(afdelingAverages) {
+            
+            const labels = afdelingAverages.map(a => a.naam);
+            const data = afdelingAverages.map(a => a.gemiddelde);
+            const backgroundColors = afdelingAverages.map(a => a.kleurData.color);
+
+            if (window.afdelingAveragesChartInstance) {
+                window.afdelingAveragesChartInstance.destroy();
+            }
+
+            window.afdelingAveragesChartInstance = new Chart(afdelingAveragesChartContext, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gemiddelde Opkomst',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors,
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Gemiddelde Opkomst per Dag', font: { weight: 'bold' } },
+                            ticks: {
+                                precision: 0
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                padding: 10,
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            titleFont: { weight: 'bold' },
+                            bodyFont: { weight: 'normal' },
+                            backgroundColor: 'rgba(51, 51, 51, 0.8)',
+                            callbacks: {
+                                title: function(context) { return context[0].label; },
+                                label: function(context) { return ` Gemiddelde: ${context.parsed.y} leden`; }
+                            }
+                        },
+                        datalabels: { 
+                            align: 'end',
+                            anchor: 'end',
+                            offset: 4, 
+                            color: '#1f2937', 
+                            formatter: function(value) { return value; },
+                            font: { size: 14, weight: 'bold' }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        // --- WEERGAVE FUNCTIES ---
+
+        /**
+         * Genereert een statistiekkaart (Globale Cijfers).
+         */
+        function displayStatCard(titel, waarde, emoji, subtitel) {
+            const cardHtml = `
+                <div class="bg-white p-5 rounded-xl shadow-xl border-b-4 border-blue-400 transform hover:scale-[1.01] transition duration-300">
+                    <div class="flex items-center">
+                        <span class="text-4xl sm:text-5xl mr-5 text-blue-600">${emoji}</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">${titel}</p>
+                            <p class="mt-1 text-3xl sm:text-4xl font-extrabold text-gray-800">${waarde}</p>
+                            <p class="mt-2 text-xs text-gray-400 italic">${subtitel}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            statCardsContainer.insertAdjacentHTML('beforeend', cardHtml);
+        }
+
+        /**
+         * Genereert een kaart voor de afdelingsanalyse, met kleuraccent.
+         */
+        function displayAfdelingCard(naam, totaal, gemiddelde, hoogste, laagste, aantalTellingen, kleur) {
+            
+            let accentColor = 'border-indigo-500';
+            let titleColor = 'text-indigo-700';
+            let bgLight = 'bg-indigo-50';
+
+            // Dynamische kleurtoewijzing
+            switch (kleur) {
+                case 'purple': accentColor = 'border-purple-500'; titleColor = 'text-purple-700'; bgLight = 'bg-purple-50'; break;
+                case 'yellow': accentColor = 'border-yellow-600'; titleColor = 'text-yellow-700'; bgLight = 'bg-yellow-50'; break;
+                case 'green': accentColor = 'border-green-600'; titleColor = 'text-green-700'; bgLight = 'bg-green-50'; break;
+                case 'red': accentColor = 'border-red-600'; titleColor = 'text-red-700'; bgLight = 'bg-red-50'; break;
+                case 'blue': accentColor = 'border-blue-600'; titleColor = 'text-blue-700'; bgLight = 'bg-blue-50'; break;
+                case 'orange': accentColor = 'border-orange-600'; titleColor = 'text-orange-700'; bgLight = 'bg-orange-50'; break;
+                default: break;
+            }
+
+            const cardHtml = `
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-8 ${accentColor} ${bgLight} transition duration-150 hover:shadow-xl">
+                    <h4 class="text-xl font-extrabold ${titleColor} mb-4 border-b pb-2">${naam}</h4>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex justify-between">
+                            <span class="font-medium">Gemiddelde per dag:</span>
+                            <span class="font-bold text-xl text-green-700">${gemiddelde}</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="font-medium">Hoogste Opkomst:</span>
+                            <span class="font-bold text-lg text-red-600">${hoogste}</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="font-medium">Laagste Opkomst:</span>
+                            <span class="font-bold text-lg text-gray-800">${laagste}</span>
+                        </li>
+                        <li class="flex justify-between border-t pt-2 mt-2 text-sm text-gray-500">
+                            <span>Totale Tellingen:</span>
+                            <span class="text-gray-600 font-semibold">${aantalTellingen}</span>
+                        </li>
+                        <li class="flex justify-between text-sm text-gray-500">
+                            <span>Totaal:</span>
+                            <span class="text-gray-600 font-semibold">${totaal}</span>
+                        </li>
+                    </ul>
+                </div>
+            `;
+            afdelingsAnalyseContainer.insertAdjacentHTML('beforeend', cardHtml);
+        }
+        
+    </script>
+</body>
+</html>

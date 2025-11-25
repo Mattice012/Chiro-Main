@@ -1,0 +1,16 @@
+/* Globale font definitie */
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* Responsive hoogte voor de grafiek (overgenomen uit de oorspronkelijke code) */
+.chart-container {
+    position: relative;
+    height: 350px; /* Iets hoger voor een betere weergave */
+    width: 100%;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 450px; 
+    }
+}

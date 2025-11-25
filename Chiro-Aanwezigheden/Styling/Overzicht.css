@@ -1,0 +1,69 @@
+/* Globale font definitie */
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* --- STYLING VOOR DE DAGELIJKSE DETAIL RIJ (Uitklapbaar) --- */
+.details-row {
+    display: none; 
+}
+.counting-row-expanded + .details-row {
+    display: table-row; 
+}
+.details-cell-content {
+    padding: 1rem 1.5rem;
+    background-color: #f0f9ff; /* Light Blue-50 */
+    border-top: 2px solid #bae6fd; /* Blue-200 */
+}
+
+/* --- STYLING VOOR DE MAAND ACCORDION (Summary) --- */
+.month-summary {
+    cursor: pointer;
+    padding: 1.25rem 1.5rem; 
+    /* Gebruikt custom gradient, zodat deze niet als Tailwind klasse in de HTML hoeft */
+    background-image: linear-gradient(to right, #1e40af, #2563eb); /* Dark Blue naar Blue */
+    color: #ffffff;
+    border-bottom: 2px solid #1e3a8a;
+    font-weight: 700;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    list-style: none;
+    transition: all 0.2s ease-in-out;
+    font-size: 1.25rem;
+}
+.month-summary:hover {
+    background-image: linear-gradient(to right, #1d4ed8, #2563eb);
+}
+/* Verberg de standaard details pijl/marker */
+.month-summary::-webkit-details-marker {
+    display: none;
+}
+
+/* De custom pijl/indicator rotatie */
+.month-summary .icon-arrow {
+    transition: transform 0.2s;
+    transform: rotate(0deg);
+}
+details[open] > .month-summary .icon-arrow {
+    transform: rotate(90deg);
+}
+
+/* Styling voor de totale maandtelling badge */
+.total-badge {
+    background-color: #fca5a5; /* Red-300 Light */
+    color: #991b1b; /* Red-800 Dark */
+    font-size: 2rem;
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+/* Style voor geselecteerde rij */
+.counting-row-expanded {
+    /* Gebruikt !important om Tailwind's hover-klasse te overschrijven wanneer de rij is uitgeklapt */
+    background-color: #bfdbfe !important; /* Blue-200 */
+}
+/* Verbeterde cursor voor het geheime verwijder-mechanisme */
+.delete-trigger {
+    cursor: pointer;
+}

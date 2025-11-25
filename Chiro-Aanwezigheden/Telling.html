@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chiro Aanwezigheden | Registratie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="./Styling/Chirologo_1200px.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"></script>
+    
+    <link rel="stylesheet" href="./Styling/Telling.css"> 
+    
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-4 sm:p-6">
+    
+    <header class="w-full max-w-6xl mb-8 bg-white shadow-xl rounded-xl px-4 py-4 sm:px-8 sm:py-6 border-t-4 border-blue-600">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-gray-800">
+                <span class="text-blue-600">Aanwezigheden</span> <span class="text-lg font-normal text-gray-500 hidden sm:inline">| Afdelingen</span>
+            </h1>
+
+            <button id="menu-toggle" class="sm:hidden p-2 text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+
+            <nav id="desktop-nav" class="hidden sm:flex items-center space-x-3">
+                <a href="statistieken.html" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md text-sm font-semibold transition hover:shadow-lg whitespace-nowrap">
+                    Statistieken
+                </a>
+                <a id="overzicht-link" href="overzicht.html" 
+                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-md text-sm font-semibold transition hover:shadow-lg whitespace-nowrap">
+                    Overzicht
+                </a>
+                <button id="logout-button" 
+                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md text-sm font-semibold transition hover:shadow-lg whitespace-nowrap">
+                    Uitloggen
+                </button>
+            </nav>
+        </div>
+
+        <nav id="mobile-menu" class="hidden sm:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
+            <a href="statistieken.html" 
+                class="block w-full text-center bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg font-semibold transition">
+                Statistieken
+            </a>
+            <a id="overzicht-link-mobile" href="overzicht.html" 
+                class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold transition">
+                Overzicht
+            </a>
+            <button id="logout-button-mobile" 
+                    class="w-full text-center bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-semibold transition">
+                Uitloggen
+            </button>
+        </nav>
+    </header>
+
+    <main id="main-content" class="w-full max-w-6xl flex flex-col items-center space-y-8">
+        <div class="bg-white rounded-xl shadow-lg w-full p-5 flex flex-col lg:flex-row items-center justify-between gap-5 border border-gray-200">
+            
+            <div class="flex items-center space-x-4">
+                <label for="datum" class="text-lg font-semibold text-gray-700">Datum van Tellingen:</label>
+                <input type="date" id="datum" 
+                        class="border border-gray-300 rounded-lg p-3 text-lg shadow-inner focus:ring-blue-500 focus:border-blue-500" 
+                        aria-label="Selecteer de datum van de aanwezigheidsregistratie"/>
+            </div>
+
+            <span id="save-status" class="text-sm italic text-gray-500 order-last lg:order-none"></span>
+
+            <div class="flex items-center space-x-3 bg-blue-50 px-5 py-3 rounded-lg shadow-inner border border-blue-200">
+                <span class="font-bold text-lg text-blue-800">Totaal Aanwezig:</span>
+                <span id="totaal" class="text-4xl font-extrabold text-blue-700">0</span>
+            </div>
+        </div>
+
+        <section id="afdelingen" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full"></section>
+
+        <section class="w-full bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <label for="mededeling" class="block text-xl font-bold text-gray-800 mb-3 border-b pb-3">Algemene Notities / Mededeling voor de Dag:</label>
+            <textarea id="mededeling" rows="4" placeholder="Voeg hier belangrijke mededelingen toe"
+                class="w-full border border-gray-300 rounded-lg p-4 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none shadow-sm hover:border-blue-400"></textarea>
+        </section>
+        
+        <footer class="mt-8 w-full flex justify-center p-3">
+            <div class="flex flex-col sm:flex-row gap-5 bg-white shadow-2xl rounded-xl px-8 py-6 border border-gray-300">
+                <button id="export" class="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold transition transform hover:scale-[1.02] shadow-lg">
+                    <span>CSV Export</span>
+                </button>
+                <button id="exportXlsx" class="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-bold transition transform hover:scale-[1.02] shadow-lg">
+                    <span>XLSX Export</span>
+                </button>
+            </div>
+        </footer>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+        //NAVIGATIE 
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        //FIREBASE CONFIGURATIE 
+        const firebaseConfig = {
+            apiKey: "AIzaSyARowFAsAFzH3MLNishFGhDvoN8f0dZx2g",
+            authDomain: "chiro-aanwezigheden-2c507.firebaseapp.com",
+            projectId: "chiro-aanwezigheden-2c507",
+            storageBucket: "chiro-aanwezigheden-2c507.firebasestorage.app",
+            messagingSenderId: "800439663397",
+            appId: "1:800439663397:web:3225dc6704320c4227f8cc",
+            measurementId: "G-36V4EYGV3P"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const tellingenCollectie = "aanwezigheden";
+
+        let isInitialLoad = true;
+        let tellingenData = [];
+
+        // Afdelingen per kleurtje
+        const afdelingen = [
+            { naam: "Sloebers", kleur: "purple" },
+            { naam: "Speelclub Jongens", kleur: "yellow" },
+            { naam: "Speelclub Meisjes", kleur: "yellow" },
+            { naam: "Rakkers", kleur: "green" },
+            { naam: "Kwiks", kleur: "green" },
+            { naam: "Toppers", kleur: "red" },
+            { naam: "Tippers", kleur: "red" },
+            { naam: "Kerels", kleur: "blue" },
+            { naam: "Tiptiens", kleur: "blue" },
+            { naam: "Aspis", kleur: "orange" },
+        ];
+
+        // KLEUR MAP BLIJFT IN JS, OM DYNAMISCH DE STYLES IN TE VULLEN
+        const colorMap = {
+            purple: { 200: 'rgb(233, 213, 255)', 500: '#8B5CF6' }, 
+            yellow: { 200: 'rgb(254, 249, 195)', 500: '#EAB308' }, 
+            green: { 200: 'rgb(187, 247, 208)', 500: '#10B981' },
+            red: { 200: 'rgb(254, 202, 202)', 500: '#EF4444' }, 
+            blue: { 200: 'rgb(191, 219, 254)', 500: '#3B82F6' }, 
+            orange: { 200: 'rgb(255, 216, 168)', 500: '#F97316' } 
+        };
+
+        // DOM Elementen
+        const container = document.getElementById("afdelingen");
+        const totaalDisplay = document.getElementById("totaal");
+        const datumInput = document.getElementById("datum");
+        const mededelingInput = document.getElementById("mededeling");
+        const saveStatus = document.getElementById("save-status");
+        const logoutButton = document.getElementById("logout-button");
+        const logoutButtonMobile = document.getElementById("logout-button-mobile"); // Mobiele knop!
+        const mainContent = document.getElementById("main-content");
+        
+        //datum instellen op moment zledf
+        const vandaag = new Date().toISOString().split("T")[0];
+        datumInput.value = vandaag;
+
+        // --- AUTHENTICATIE LOGICA ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                mainContent.style.display = 'flex';
+                logoutButton.classList.remove("hidden");
+                logoutButtonMobile.classList.remove("hidden"); 
+                loadData(); 
+            } else {
+                mainContent.style.display = 'none';
+                logoutButton.classList.add("hidden");
+                logoutButtonMobile.classList.add("hidden");
+                window.location.href = "login.html"; 
+            }
+        });
+
+        const handleLogout = async () => {
+            try { 
+                await signOut(auth); 
+            }
+            catch (error) { alert("Fout bij uitloggen."); }
+        };
+
+        // Event listeners koppelen aan beide uitlogknoppen
+        logoutButton.addEventListener("click", handleLogout);
+        logoutButtonMobile.addEventListener("click", handleLogout);
+
+
+        // --- DATA OPSLAAN EN LADEN LOGICA (FIREBASE) ---
+        async function saveData() {
+            if (isInitialLoad) return;
+            const date = datumInput.value;
+            const dataToSave = {
+                datum: date,
+                timestamp: serverTimestamp(),
+                algemeneMededeling: mededelingInput.value,
+                totaalAantal: tellingenData.reduce((a, item) => a + item.count, 0),
+                afdelingen: tellingenData.map(item => ({
+                    naam: item.naam, aantal: item.count, opmerking: item.note
+                }))
+            };
+            try {
+                saveStatus.textContent = "Opslaan...";
+                await setDoc(doc(db, tellingenCollectie, date), dataToSave);
+                saveStatus.textContent = "Automatisch opgeslagen: " + new Date().toLocaleTimeString('nl-BE');
+                setTimeout(() => saveStatus.textContent = "", 3000); 
+            } catch {
+                saveStatus.textContent = "Fout bij opslaan ❌";
+            }
+        }
+
+        async function loadData() {
+            const date = datumInput.value;
+            saveStatus.textContent = "Laden van data...";
+            isInitialLoad = true;
+            try {
+                const docRef = doc(db, tellingenCollectie, date);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    mededelingInput.value = data.algemeneMededeling || "";
+                    tellingenData = afdelingen.map(afd => {
+                        const saved = data.afdelingen.find(sa => sa.naam === afd.naam);
+                        return { naam: afd.naam, kleur: afd.kleur, count: saved ? saved.aantal : 0, note: saved ? saved.opmerking : "" };
+                    });
+                    saveStatus.textContent = "Data geladen ✔️";
+                } else {
+                    tellingenData = afdelingen.map(afd => ({ naam: afd.naam, kleur: afd.kleur, count: 0, note: "" }));
+                    mededelingInput.value = "";
+                    saveStatus.textContent = "Nieuwe registratiedag gestart";
+                }
+            } catch {
+                saveStatus.textContent = "Fout bij laden ❌";
+            }
+            renderCards();
+            updateTotaal(false); 
+            isInitialLoad = false;
+        }
+
+        // --- UI FUNCTIES ---
+        function updateTotaal(shouldSave = true) {
+            const totaal = tellingenData.reduce((a, i) => a + i.count, 0);
+            totaalDisplay.textContent = totaal;
+            if (shouldSave) {
+                saveData();
+            }
+        }
+
+        function renderCards() {
+            container.innerHTML = "";
+            tellingenData.forEach((item, i) => {
+                const afd = afdelingen.find(a => a.naam === item.naam);
+                const card = document.createElement("div");
+                
+                // Card Styling met subtiele accentkleur (Tailwind classes)
+                card.className = "rounded-xl shadow-lg p-6 text-center border-t-4 transition transform hover:shadow-xl hover:-translate-y-0.5";
+                
+                // Dynamische inline styles (hier blijft de JS kleurencodes gebruiken)
+                card.style.borderColor = colorMap[afd.kleur][500]; 
+                card.style.backgroundColor = 'white'; 
+                
+                card.innerHTML = `
+                    <h2 class="text-xl font-extrabold mb-4 text-gray-800">${item.naam}</h2>
+                    <div class="flex justify-center items-center space-x-4 mb-4">
+                        <button id="min-${i}" class="text-white px-5 py-3 rounded-full text-xl font-bold w-12 h-12 flex items-center justify-center hover:opacity-90 transform hover:scale-105 shadow-md"
+                            style="background-color:${colorMap[afd.kleur][500]}">–</button>
+                        <span id="count-${i}" class="text-5xl font-extrabold text-gray-800 w-16">${item.count}</span>
+                        <button id="plus-${i}" class="text-white px-5 py-3 rounded-full text-xl font-bold w-12 h-12 flex items-center justify-center hover:opacity-90 transform hover:scale-105 shadow-md"
+                            style="background-color:${colorMap[afd.kleur][500]}">+</button>
+                    </div>
+                    <label for="note-${i}" class="sr-only">Opmerking voor ${item.naam}</label>
+                    <textarea id="note-${i}" rows="2" placeholder="Opmerking voor ${item.naam}..."
+                        class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 resize-none shadow-inner mt-3">${item.note || ""}</textarea>
+                `;
+                container.appendChild(card);
+                
+                // Event Listeners voor de controls
+                document.getElementById(`plus-${i}`).addEventListener("click", () => {
+                    item.count++;
+                    document.getElementById(`count-${i}`).textContent = item.count;
+                    updateTotaal();
+                });
+                document.getElementById(`min-${i}`).addEventListener("click", () => {
+                    if (item.count > 0) {
+                        item.count--;
+                        document.getElementById(`count-${i}`).textContent = item.count;
+                        updateTotaal();
+                    }
+                });
+                document.getElementById(`note-${i}`).addEventListener("input", e => {
+                    item.note = e.target.value;
+                    updateTotaal();
+                });
+            });
+        }
+
+        // --- EXPORT LOGICA ---
+        function toCsv(rows, delimiter = ';') {
+            const escapeCell = v => {
+                if (v == null) return '';
+                const s = String(v);
+                const needsQuotes = s.includes('"') || s.includes(delimiter) || s.includes('\n') || s.includes('\r');
+                const escaped = s.replace(/"/g, '""');
+                return needsQuotes ? `"${escaped}"` : escaped;
+            };
+            return rows.map(r => r.map(escapeCell).join(delimiter)).join('\r\n');
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        }
+
+        function exportExcelCsv() {
+            const date = datumInput.value || vandaag;
+            const rows = [["Datum", "Afdeling", "Aantal", "Mededeling"]];
+            tellingenData.forEach(i => rows.push([date, i.naam, i.count, i.note || ""]));
+            const totaal = tellingenData.reduce((a, b) => a + b.count, 0);
+            rows.push(["", "TOTAAL", totaal, mededelingInput.value || ""]); 
+            
+            const csv = toCsv(rows, ';');
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); 
+            const blob = new Blob([bom, csv], { type: 'text/csv;charset=utf-8' });
+            downloadBlob(blob, `aanwezigheden_${date}.csv`);
+        }
+
+        function exportExcelXlsx() {
+            if (typeof XLSX === 'undefined') {
+                    console.error("SheetJS (XLSX) bibliotheek niet geladen.");
+                    exportExcelCsv();
+                    alert("Fout: XLSX exportbibliotheek niet beschikbaar. CSV is gedownload.");
+                    return;
+            }
+            try {
+                const date = datumInput.value || vandaag;
+                const rows = [["Datum", "Afdeling", "Aantal", "Mededeling"]];
+                tellingenData.forEach(i => rows.push([date, i.naam, i.count, i.note || ""]));
+                const totaal = tellingenData.reduce((a, b) => a + b.count, 0);
+                rows.push(["", "TOTAAL", totaal, mededelingInput.value || ""]);
+
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                ws['!cols'] = [{ wch: 15 }, { wch: 30 }, { wch: 10 }, { wch: 50 }];
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Aanwezigheden");
+                XLSX.writeFile(wb, `aanwezigheden_${date}.xlsx`);
+            } catch (e) {
+                console.error("XLSX export mislukt, terugval naar CSV.", e);
+                exportExcelCsv();
+                alert("Fout bij XLSX export. CSV is gedownload.");
+            }
+        }
+
+
+        // --- EVENT LISTENERS ---
+
+        datumInput.addEventListener("change", loadData);
+        mededelingInput.addEventListener("input", saveData);
+        document.getElementById("export").addEventListener("click", exportExcelCsv);
+        document.getElementById("exportXlsx").addEventListener("click", exportExcelXlsx);
+        
+    </script>
+</body>
+</html>

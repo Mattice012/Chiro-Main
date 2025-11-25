@@ -1,0 +1,89 @@
+/* Custom styles for the background image and overlay */
+.hero-pattern {
+    background-color: #0f172a; /* Fallback kleur */
+    background-image: 
+        /* Donkere overlay van 70% op de achtergrondkleur (chiro-dark/slate-900) */
+        linear-gradient(rgba(15, 23, 42, 0.70), rgba(15, 23, 42, 0.70)),
+        /* JOUW FOTO - Zorg dat 'leidingsfoto.jpg' in de juiste relatieve map staat t.o.v. DIT CSS-bestand, of gebruik een absolute URL. */
+        url('../leidingsfoto.jpg'); 
+    background-size: cover;
+    /* Centreer de groepsfoto voor een beter resultaat */
+    background-position: center; 
+    background-repeat: no-repeat;
+}
+
+/* Custom wave separator style */
+.wave-separator {
+    fill: #f8fafc; /* Tailwind bg-slate-50 */
+    position: absolute;
+    bottom: -1px; 
+    left: 0;
+    width: 100%;
+    height: 100px;
+}
+
+/* Toegevoegde professionele navigatie stijlen */
+.sticky-header { 
+    position: sticky; 
+    top: 0; 
+    z-index: 40; 
+    transition: all 0.3s ease; 
+}
+
+/* Vaste navigatiebalk onderaan voor mobiel (md:hidden) */
+.bottom-nav { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    z-index: 50; 
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.05); 
+    padding-bottom: env(safe-area-inset-bottom); 
+    background: white;
+    border-top: 1px solid #e2e8f0; /* slate-200 */
+}
+/* Active state for bottom nav icon */
+.nav-item.active svg { 
+    stroke-width: 3px; 
+    color: #e62e2e; /* chiro-red */
+}
+
+/* Styling voor focus/select, zoals gevraagd */
+input:focus, select:focus {
+    outline: none;
+    border-color: #1e40af; /* chiro-blue */
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+}
+
+/* Nav Link Animation Styling - Gebruikt chiro-blue */
+.desktop-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px; /* Aangepaste padding */
+    font-weight: 600;
+    color: #475569; /* slate-600 */
+    transition: color 0.3s ease;
+}
+
+.desktop-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px; /* Dikkere underline */
+    background-color: #1e40af; /* chiro-blue */
+    transition: all 0.3s ease-out;
+    border-radius: 9999px;
+    transform: translateX(-50%);
+}
+
+.desktop-nav-link:hover {
+    color: #1e40af; /* chiro-blue */
+}
+
+.desktop-nav-link:hover::after,
+.desktop-nav-link.active::after {
+    width: 100%;
+}

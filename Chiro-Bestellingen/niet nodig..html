@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiro Bestellingen Portaal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="Chirologo_1200px.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Simuleer dark mode voor de portaalpagina */
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #111827; color: #f9fafb; }
+        }
+
+        .portal-card { transition: all 0.2s ease; }
+        .portal-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1), 0 4px 6px -2px rgba(37, 99, 235, 0.05); }
+        .portal-card-icon { transform: rotate(0deg); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .portal-card:hover .portal-card-icon { transform: rotate(-5deg) scale(1.1); }
+    </style>
+</head>
+<body class="min-h-screen bg-[#f3f4f6] dark:bg-gray-900 text-gray-800 dark:text-gray-100 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-4xl mx-auto py-12">
+        <header class="text-center mb-12">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-xl shadow-blue-500/30">
+                <i data-lucide="utensils-crossed" class="w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">
+                Chiro Bestellingen Portaal
+            </h1>
+            <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">
+                Kies een functionaliteit om verder te gaan.
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <button onclick="navigateToAppView('orderForm')" class="portal-card bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl flex flex-col items-center text-center hover:border-blue-300 dark:hover:border-blue-600">
+                <div class="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="clipboard-list" class="w-7 h-7 portal-card-icon"></i>
+                </div>
+                <h2 class="text-xl font-bold mb-1 text-gray-900 dark:text-white">Brood Bestellen</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Plaats een nieuwe bestelling voor je afdeling.</p>
+            </button>
+
+            <button onclick="navigateToAppView('preparation')" class="portal-card bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl flex flex-col items-center text-center hover:border-green-300 dark:hover:border-green-600">
+                <div class="w-14 h-14 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="package-check" class="w-7 h-7 portal-card-icon"></i>
+                </div>
+                <h2 class="text-xl font-bold mb-1 text-gray-900 dark:text-white">Klaarzetten</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Bekijk het totaaloverzicht per afdeling.</p>
+            </button>
+
+            <button onclick="navigateToAppView('stock')" class="portal-card bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl flex flex-col items-center text-center hover:border-purple-300 dark:hover:border-purple-600">
+                <div class="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="boxes" class="w-7 h-7 portal-card-icon"></i>
+                </div>
+                <h2 class="text-xl font-bold mb-1 text-gray-900 dark:text-white">Voorraad Beheer</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Beheer beleg en bekijk broodbehoefte. <i data-lucide="lock" class="w-3 h-3 inline ml-1"></i></p>
+            </button>
+
+            <button onclick="navigateToAppView('settings')" class="portal-card bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl flex flex-col items-center text-center hover:border-red-300 dark:hover:border-red-600">
+                <div class="w-14 h-14 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="coins" class="w-7 h-7 portal-card-icon"></i>
+                </div>
+                <h2 class="text-xl font-bold mb-1 text-gray-900 dark:text-white">Financiën</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Totaaloverzicht van kosten en prijzen. <i data-lucide="lock" class="w-3 h-3 inline ml-1"></i></p>
+            </button>
+        </div>
+
+        <footer class="mt-16 text-center text-xs text-gray-400 dark:text-gray-600">
+            <p>Klik op een van de tegels om de Chiro Bestellingen Applicatie te openen en naar de juiste sectie te navigeren.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Initialiseer Lucide Icons
+        lucide.createIcons();
+
+        /**
+         * Functie om de gebruiker naar de hoofdapp te sturen met de geselecteerde weergave.
+         * @param {string} viewId - De ID van de gewenste weergave (e.g., 'orderForm', 'stock').
+         */
+        function navigateToAppView(viewId) {
+            // Zorg ervoor dat de bestandsnaam van je hoofdapp correct is.
+            const appUrl = "index.html"; 
+            
+            // Navigeert naar de hoofdapp en voegt de viewId als hash toe (bv. index.html#stock)
+            window.location.href = `${appUrl}#${viewId}`;
+        }
+    </script>
+</body>
+</html>

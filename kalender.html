@@ -373,24 +373,25 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // NIEUWE CONFIGURATIE VOOR BESTELLINGEN-CHIRO-DAB8B
+        // NIEUWE CONFIGURATIE VOOR CHIRO-AANWEZIGHEDEN-2C507
         const firebaseConfig = {
-            apiKey: "AIzaSyDexnpDt68UFna9_6E5SQAVaz4gAugGAM8",
-            authDomain: "bestellingen-chiro-dab8b.firebaseapp.com",
-            projectId: "bestellingen-chiro-dab8b",
-            storageBucket: "bestellingen-chiro-dab8b.firebasestorage.app",
-            messagingSenderId: "354472597808",
-            appId: "1:354472597808:web:b6d0659d9147a03393d0f5"
+            apiKey: "AIzaSyARowFAsAFzH3MLNishFGhDvoN8f0dZx2g",
+            authDomain: "chiro-aanwezigheden-2c507.firebaseapp.com",
+            projectId: "chiro-aanwezigheden-2c507",
+            storageBucket: "chiro-aanwezigheden-2c507.firebasestorage.app",
+            messagingSenderId: "800439663397",
+            appId: "1:800439663397:web:3225dc6704320c4227f8cc",
+            measurementId: "G-36V4EYGV3P"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // We behouden dezelfde interne structuur zodat de logica klopt
+        // We behouden dezelfde interne structuur
         const APP_ID = "chiro-kalender-prod"; 
         
-        // EXPOSE DB FOR MIGRATION (See instruction below)
+        // EXPOSE DB FOR MIGRATION
         window.dbInstance = db;
         window.collectionInstance = collection;
         window.addDocInstance = addDoc;

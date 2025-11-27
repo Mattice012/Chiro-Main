@@ -156,11 +156,7 @@
                 <div class="py-2 sm:py-4 text-center text-[8px] sm:text-[10px] font-bold text-red-400 uppercase tracking-widest">Zo</div>
             </div>
             <div id="calendarGrid" class="grid grid-cols-7 auto-rows-fr bg-white dark:bg-gray-800 min-h-[450px] sm:min-h-[600px] divide-x divide-gray-100 dark:divide-gray-700 divide-y">
-                <div class="col-span-7 py-32 flex flex-col items-center justify-center text-gray-400 gap-3">
-                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-600"></i>
-                    <span class="text-sm font-medium tracking-wide">Kalender ophalen...</span>
                 </div>
-            </div>
         </div>
     </main>
 
@@ -391,7 +387,7 @@
         // We behouden dezelfde interne structuur
         const APP_ID = "chiro-kalender-prod"; 
         
-        // EXPOSE DB FOR MIGRATION
+        // EXPOSE DB FOR MIGRATION (optioneel, maar behouden)
         window.dbInstance = db;
         window.collectionInstance = collection;
         window.addDocInstance = addDoc;
@@ -457,7 +453,8 @@
                 bulkBtn.classList.add('hidden');
                 if (!user) signInAnonymously(auth).catch(console.error);
             }
-            renderCalendar();
+            // renderCalendar wordt hier niet meer aangeroepen, dit gebeurt nu direct bij het starten van de script.
+            // De loadEvents onSnapshot zal de kalender renderen met events wanneer de data binnenkomt.
         });
 
         window.handleNavbarAction = () => {
@@ -557,7 +554,8 @@
             onSnapshot(q, (snapshot) => {
                 events = [];
                 snapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
-                renderCalendar();
+                // Zodra de data binnen is, wordt de kalender gerenderd MET de events
+                renderCalendar(); 
             });
         };
 
@@ -877,7 +875,14 @@
             lucide.createIcons();
         };
 
+        // **************** CORRIGEERDE OPROEP VOLGORDE ****************
+        // 1. Render de kalenderstructuur onmiddellijk, zodat de gebruiker deze meteen ziet (snelste laadtijd).
+        renderCalendar(); 
+        
+        // 2. Start het asynchroon ophalen van events. Wanneer de data binnenkomt, zal onSnapshot renderCalendar() 
+        // opnieuw aanroepen om de events in de reeds geladen kalender te plaatsen.
         loadEvents();
+        // *************************************************************
     </script>
 </body>
 </html>

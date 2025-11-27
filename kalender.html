@@ -250,7 +250,7 @@
                 </div>
                 <button onclick="closeBulkModal()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition text-gray-500">
                     <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                </ êtes</button>
             </div>
             <form id="bulkEventForm" class="p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div class="space-y-1.5">
@@ -446,6 +446,10 @@
         };
 
         // --- AUTH ---
+        // Het is cruciaal om **eerst** de anonieme gebruiker te creëren om Firestore toegang te garanderen.
+        // De onAuthStateChanged-handler zal dan de UI aanpassen wanneer een *echte* gebruiker inlogt.
+        signInAnonymously(auth).catch(console.error);
+
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             const userInfo = document.getElementById('userInfo');
@@ -453,45 +457,50 @@
             const bulkBtn = document.getElementById('bulkBtn');
             const userEmailSpan = document.getElementById('userEmail');
 
-            if (logoutTimer) clearTimeout(logoutTimer);
-
+            // Beheer UI afhankelijk van of de gebruiker *ingelogd* is (niet anoniem)
             if (user && !user.isAnonymous) {
                 userInfo.classList.remove('hidden'); userInfo.classList.add('flex');
                 logoutBtn.classList.remove('hidden');
                 bulkBtn.classList.remove('hidden');
                 userEmailSpan.innerText = user.email;
 
+                if (logoutTimer) clearTimeout(logoutTimer);
                 logoutTimer = setTimeout(() => {
                     showToast("Automatisch uitgelogd (inactiviteit)", "info");
                     signOut(auth);
                 }, 5 * 60 * 1000); 
 
+                // Verwerk eventuele wachtende acties
                 if (pendingDate) { openAddModal(pendingDate); pendingDate = null; showToast("Datum geselecteerd"); }
                 else if (pendingEditEvent) { openEditModal(pendingEditEvent); pendingEditEvent = null; showToast("Bewerk modus geopend"); }
 
             } else {
+                // Anonieme of uitgelogde gebruiker
                 userInfo.classList.add('hidden'); userInfo.classList.remove('flex');
                 logoutBtn.classList.add('hidden');
                 bulkBtn.classList.add('hidden');
-                if (!user) signInAnonymously(auth).catch(console.error);
+                // Optioneel: leeg de weergave als we zeker zijn dat de gebruiker volledig uitgelogd is (niet anoniem)
             }
         });
 
         window.handleNavbarAction = () => {
+            // Actie bij klikken op 'Nieuw/Activiteit'
             if (currentUser && !currentUser.isAnonymous) openAddModal();
             else openLoginModal();
         };
 
         window.handleDateClick = (dateStr) => {
+            // Actie bij klikken op een datumcel
             if (currentUser && !currentUser.isAnonymous) openAddModal(dateStr);
             else {
                 pendingDate = dateStr;
                 openLoginModal();
-                showToast("Log in om te bewerken", "info");
+                showToast("Log in om een nieuwe activiteit toe te voegen", "info");
             }
         }
 
         window.handleEditClick = (evt) => {
+             // Actie bij klikken op 'Bewerken' in de view modal
              if (currentUser && !currentUser.isAnonymous) {
                 closeViewModal();
                 openEditModal(evt);
@@ -505,6 +514,7 @@
 
         // Custom Confirm Logic
         window.handleDeleteClick = (evt) => {
+             // Actie bij klikken op 'Verwijderen' in de view modal
              if (currentUser && !currentUser.isAnonymous) {
                 deleteTargetId = evt.id;
                 document.getElementById('confirmModal').classList.remove('hidden');
@@ -553,6 +563,7 @@
 
             try {
                 await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPass').value);
+                // De onAuthStateChanged-handler handelt de UI-update en heropening van modals af
                 closeLoginModal();
                 document.getElementById('loginForm').reset();
                 showToast("Welkom terug!");
@@ -567,6 +578,7 @@
         window.handleLogout = () => {
             signOut(auth);
             showToast("Je bent succesvol uitgelogd", "info");
+            // Bij het uitloggen wordt de anonieme gebruiker opnieuw aangemaakt door de onAuthStateChanged handler.
         };
 
         const loadEvents = () => {
@@ -575,6 +587,7 @@
             document.getElementById('loadingOverlay').classList.remove('hidden');
             
             const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'events'));
+            // Gebruik onSnapshot om realtime updates en de initiële data te krijgen
             onSnapshot(q, (snapshot) => {
                 events = [];
                 snapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
@@ -594,6 +607,7 @@
 
         document.getElementById('addEventForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            // Dubbelcheck op inlogstatus, essentieel voor schrijfbewerkingen
             if (!currentUser || currentUser.isAnonymous) {
                 showToast("Sessie verlopen. Log opnieuw in.", "error"); return;
             }
@@ -637,6 +651,9 @@
 
         // --- BULK FUNCTIE ---
         window.openBulkModal = () => {
+             if (!currentUser || currentUser.isAnonymous) {
+                showToast("Log in om reeksen toe te voegen", "error"); return openLoginModal();
+            }
             document.getElementById('bulkType').value = 'chirozondag';
             document.getElementById('bulkDates').value = '';
             document.getElementById('bulkDesc').value = '';
@@ -808,11 +825,15 @@
             document.getElementById('viewType').innerText = styles.label;
 
             const actions = document.getElementById('viewAdminActions');
-            actions.classList.remove('hidden'); actions.classList.add('grid');
+            // Alleen beheerdersacties tonen als de gebruiker is ingelogd
+            if (currentUser && !currentUser.isAnonymous) {
+                actions.classList.remove('hidden'); actions.classList.add('grid');
+                document.getElementById('viewDeleteBtn').onclick = () => handleDeleteClick(evt);
+                document.getElementById('viewEditBtn').onclick = () => handleEditClick(evt);
+            } else {
+                 actions.classList.add('hidden'); actions.classList.remove('grid');
+            }
             
-            document.getElementById('viewDeleteBtn').onclick = () => handleDeleteClick(evt);
-            document.getElementById('viewEditBtn').onclick = () => handleEditClick(evt);
-
             toggleModal('viewModal', true);
         };
 
@@ -859,7 +880,13 @@
             // Voeg cellen voor de huidige maand toe
             for (let day = 1; day <= daysInMonth; day++) {
                 const cell = document.createElement('div');
-                cell.className = "day-cell bg-white dark:bg-gray-800 p-1 sm:p-2 flex flex-col gap-1 relative group overflow-y-auto cursor-pointer hover:bg-blue-50/50 dark:hover:bg-gray-700/50 transition-colors min-h-[80px] md:min-h-[120px]";
+                // Verwijder de hover effecten van de cursor-pointer als de gebruiker anoniem is.
+                const isAuthUser = currentUser && !currentUser.isAnonymous;
+                const cellClasses = isAuthUser 
+                    ? "day-cell bg-white dark:bg-gray-800 p-1 sm:p-2 flex flex-col gap-1 relative group overflow-y-auto cursor-pointer hover:bg-blue-50/50 dark:hover:bg-gray-700/50 transition-colors min-h-[80px] md:min-h-[120px]"
+                    : "day-cell bg-white dark:bg-gray-800 p-1 sm:p-2 flex flex-col gap-1 relative group overflow-y-auto min-h-[80px] md:min-h-[120px]";
+                
+                cell.className = cellClasses;
                 
                 const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 cell.onclick = () => handleDateClick(dayStr);
@@ -902,6 +929,7 @@
                     `;
                     pill.title = evt.description ? `${evt.title}\n\n${evt.description}` : evt.title;
                     
+                    // Event openen is altijd toegestaan (leesactie)
                     pill.onclick = (e) => { e.stopPropagation(); openViewModal(evt); };
                     cell.appendChild(pill);
                 });
@@ -910,9 +938,7 @@
             lucide.createIcons();
         };
 
-        // **************** CORRIGEERDE OPROEP VOLGORDE ****************
-        // Dit zorgt ervoor dat de functies eerst volledig gedefinieerd zijn voordat ze worden aangeroepen.
-        
+        // **************** OPROEP VOLGORDE ****************
         // 1. Render de kalenderstructuur onmiddellijk om snelle UI feedback te geven.
         renderCalendar(); 
         

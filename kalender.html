@@ -72,6 +72,22 @@
         .type-activiteit { background: #f0fdf4; color: #166534; border-left-color: #16a34a; }
         .type-vergadering { background: #fffbeb; color: #92400e; border-left-color: #d97706; }
         .type-weekend { background: #faf5ff; color: #6b21a8; border-left-color: #9333ea; }
+        
+        /* Loading Overlay for better UX */
+        #loadingOverlay {
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s;
+        }
+        .dark #loadingOverlay {
+            background-color: rgba(31, 41, 55, 0.8);
+        }
     </style>
 </head>
 <body class="min-h-screen pb-20 sm:pb-8 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200 flex flex-col selection:bg-blue-100 selection:text-blue-900">
@@ -145,7 +161,7 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative">
             <div class="grid grid-cols-7 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
                 <div class="py-2 sm:py-4 text-center text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ma</div>
                 <div class="py-2 sm:py-4 text-center text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Di</div>
@@ -155,6 +171,12 @@
                 <div class="py-2 sm:py-4 text-center text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Za</div>
                 <div class="py-2 sm:py-4 text-center text-[8px] sm:text-[10px] font-bold text-red-400 uppercase tracking-widest">Zo</div>
             </div>
+            
+            <div id="loadingOverlay" class="min-h-[450px] sm:min-h-[600px] flex flex-col items-center justify-center text-gray-500 opacity-100">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-chiro-blue"></i>
+                <span class="mt-3 text-sm font-medium tracking-wide">Kalender ophalen...</span>
+            </div>
+
             <div id="calendarGrid" class="grid grid-cols-7 auto-rows-fr bg-white dark:bg-gray-800 min-h-[450px] sm:min-h-[600px] divide-x divide-gray-100 dark:divide-gray-700 divide-y">
                 </div>
         </div>
@@ -194,7 +216,7 @@
 
                 <div id="titleContainer" class="space-y-1.5">
                     <label class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Titel</label>
-                    <input type="text" id="evtTitle" required placeholder="bv. Christus Koning" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition outline-none text-sm">
+                    <input type="text" id="evtTitle" required placeholder="Geef titel in" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition outline-none text-sm">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4 sm:gap-5">
@@ -246,7 +268,7 @@
 
                 <div id="bulkTitleContainer" class="hidden space-y-1.5">
                     <label class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Titel</label>
-                    <input type="text" id="bulkTitle" placeholder="bv. Christus Koning" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition outline-none text-sm">
+                    <input type="text" id="bulkTitle" placeholder="Geef titel in" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition outline-none text-sm">
                 </div>
 
                 <div class="space-y-1.5">
@@ -453,8 +475,6 @@
                 bulkBtn.classList.add('hidden');
                 if (!user) signInAnonymously(auth).catch(console.error);
             }
-            // renderCalendar wordt hier niet meer aangeroepen, dit gebeurt nu direct bij het starten van de script.
-            // De loadEvents onSnapshot zal de kalender renderen met events wanneer de data binnenkomt.
         });
 
         window.handleNavbarAction = () => {
@@ -550,12 +570,25 @@
         };
 
         const loadEvents = () => {
+            // Toon de laadoverlay voordat we de data ophalen
+            document.getElementById('loadingOverlay').style.opacity = '1';
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            
             const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'events'));
             onSnapshot(q, (snapshot) => {
                 events = [];
                 snapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
-                // Zodra de data binnen is, wordt de kalender gerenderd MET de events
+                
+                // Zodra de data binnen is, render de kalender en verberg de overlay
                 renderCalendar(); 
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                setTimeout(() => { document.getElementById('loadingOverlay').classList.add('hidden'); }, 300);
+            }, (error) => {
+                // Toon foutmelding en verberg overlay bij fout
+                console.error("Fout bij het laden van Firebase events:", error);
+                showToast("Fout bij laden kalenderdata: " + error.message, "error");
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                setTimeout(() => { document.getElementById('loadingOverlay').classList.add('hidden'); }, 300);
             });
         };
 
@@ -804,7 +837,7 @@
         const renderCalendar = () => {
             const grid = document.getElementById('calendarGrid');
             const label = document.getElementById('currentMonthYear');
-            grid.innerHTML = '';
+            grid.innerHTML = ''; // Maak de grid leeg
 
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -814,6 +847,7 @@
             const startingDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+            // Voeg lege cellen toe (dagen van de vorige maand)
             for (let i = 0; i < startingDay; i++) {
                 const cell = document.createElement('div');
                 cell.className = "bg-gray-50 dark:bg-gray-700/30 min-h-[80px] md:min-h-[120px]";
@@ -822,6 +856,7 @@
 
             const today = new Date();
 
+            // Voeg cellen voor de huidige maand toe
             for (let day = 1; day <= daysInMonth; day++) {
                 const cell = document.createElement('div');
                 cell.className = "day-cell bg-white dark:bg-gray-800 p-1 sm:p-2 flex flex-col gap-1 relative group overflow-y-auto cursor-pointer hover:bg-blue-50/50 dark:hover:bg-gray-700/50 transition-colors min-h-[80px] md:min-h-[120px]";
@@ -876,11 +911,12 @@
         };
 
         // **************** CORRIGEERDE OPROEP VOLGORDE ****************
-        // 1. Render de kalenderstructuur onmiddellijk, zodat de gebruiker deze meteen ziet (snelste laadtijd).
+        // Dit zorgt ervoor dat de functies eerst volledig gedefinieerd zijn voordat ze worden aangeroepen.
+        
+        // 1. Render de kalenderstructuur onmiddellijk om snelle UI feedback te geven.
         renderCalendar(); 
         
-        // 2. Start het asynchroon ophalen van events. Wanneer de data binnenkomt, zal onSnapshot renderCalendar() 
-        // opnieuw aanroepen om de events in de reeds geladen kalender te plaatsen.
+        // 2. Start het asynchroon ophalen van events. De loadEvents functie zal de loadingOverlay beheren.
         loadEvents();
         // *************************************************************
     </script>

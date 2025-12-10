@@ -1,612 +1,2068 @@
 <!DOCTYPE html>
-<html lang="nl" class="scroll-smooth">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chiro Portaal | Leiding</title>
-    <link rel="icon" href="Chirologo_1200px.png" type="image/png">
+    <title>Chiro Portaal</title>
+    <link rel="icon" type="image/png" href="Chirologo_1200px.png" />
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* Custom stijlen */
-        .hero-pattern {
-            background-color: #0f172a; /* chiro-dark */
+        body { font-family: 'Inter', sans-serif; background-color: #0f111a; color: white; overflow-x: hidden; }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #181b25; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+        /* Animations */
+        @keyframes pulse-slow { 
+            0%, 100% { opacity: 0.2; transform: scale(1) translate(0, 0); } 
+            50% { opacity: 0.4; transform: scale(1.1) translate(20px, -20px); } 
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate; }
+        
+        /* Utility to hide views */
+        .hidden-view { display: none !important; }
+        
+        /* Details Summary Marker removal */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+
+        .loader {
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #6366f1;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        /* Nieuwe stijl voor logo animatie */
-        .chiro-logo-container:hover .chiro-logo-img {
-            transform: rotate(5deg) scale(1.05);
+        /* Smooth transitions for view switching */
+        main > div {
+            animation: fadeIn 0.4s ease-out;
         }
-        .chiro-logo-img {
-            transition: transform 0.3s ease-out;
-        }
-
-        /* Verbeterde Sticky Navigatie Stijl */
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s ease-in-out, background-color 0.3s;
-        }
-        /* Style voor wanneer de header "stuck" is - VERSTERKT FROSTING EFFECT */
-        .sticky-header.scrolled {
-            /* Lichte modus */
-            background-color: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(8px); 
-        }
-        /* Dark Mode Sticky Header */
-        html.dark .sticky-header.scrolled {
-            background-color: rgba(30, 41, 59, 0.95); /* slate-800 met transparantie */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .wave-separator {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: auto;
-            color: #f8fafc; /* bg-slate-50 */
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(24, 27, 37, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        /* Dark Mode wave kleur */
-        html.dark .wave-separator {
-            color: #0f172a; /* bg-slate-900 */
-        }
-
-
-        /* Navigatie stijlen */
-        .bottom-nav {
-            @apply fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50;
-        }
-        /* Dark Mode Mobile Nav */
-        html.dark .bottom-nav {
-            @apply bg-slate-900 border-slate-700 shadow-[0_-4px_10px_rgba(0,0,0,0.4)];
-        }
-        /* Mobile Nav Active state verbeterd */
-        .nav-item.active {
-            @apply text-chiro-red;
-            transform: scale(1.05);
-        }
-        .nav-item.active svg {
-            fill: rgba(230, 46, 46, 0.1); /* Lichte rode achtergrond voor icoon */
-        }
-        
-        /* Custom scroll-margin voor de mobiele navigatie */
-        #keuze {
-            scroll-margin-top: 5rem;
-        }
-
-        /* Hero Text Animation */
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .hero-content > * {
-            animation: fadeInDown 0.8s ease-out forwards;
-        }
-        /* De vertragingen zijn hier behouden voor de animatie van de titel en subtitel */
-        .hero-content > :nth-child(1) { animation-delay: 0.1s; } 
-        .hero-content > :nth-child(2) { animation-delay: 0.3s; }
-
-        /* Nieuwe stijl voor card links bij hover - VLOEIENDER GEMAAKT */
-        .card-link-hover {
-            transition: all 0.25s ease-in-out; /* Vloeiendere transitie */
-        }
-        .card-link-hover:hover {
-            background-color: var(--hover-color);
-            box-shadow: 0 1px 3px 0 var(--shadow-color), 0 1px 2px -1px var(--shadow-color);
-            transform: translateX(6px); /* Iets verder vertaald */
-        }
-        /* Dark Mode Card Link Hover override */
-        html.dark .card-link-hover:hover {
-            /* Dark mode tinten gebruiken voor subtieler effect */
-            background-color: var(--dark-hover-color); 
-            box-shadow: 0 1px 3px 0 var(--dark-shadow-color), 0 1px 2px -1px var(--dark-shadow-color);
-        }
-
-
-        /* Custom shadow classes */
-        .shadow-custom-blue {
-            box-shadow: 0 25px 50px -12px rgba(30, 64, 175, 0.2), 0 10px 15px -3px rgba(30, 64, 175, 0.1);
-        }
-        .shadow-custom-red {
-            box-shadow: 0 25px 50px -12px rgba(230, 46, 46, 0.2), 0 10px 15px -3px rgba(230, 46, 46, 0.1);
-        }
-        
-        /* Quick Tool Icon Animation */
-        .quick-tool-icon {
-            transition: all 0.3s ease-out;
-        }
-        .quick-tool-link:hover .quick-tool-icon {
-            transform: scale(1.15) rotate(-5deg); /* Iets grotere schaling */
-        }
-        
-        /* CARD ENTRANCE ANIMATION CLASSES */
-        .card-hidden {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .card-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
     </style>
-
-    <script>
-        // Tailwind configuration met Inter font
-        tailwind.config = {
-            darkMode: 'class', // Activeer dark mode op basis van de 'dark' class op de <html> tag
-            theme: {
-                extend: {
-                    fontFamily: {
-                        // De standaard font is nu Inter
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        chiro: {
-                            red: '#e62e2e',
-                            darkRed: '#c91e1e',
-                            blue: '#1e40af', // Primary blue for admin/UI elements
-                            dark: '#0f172a' // Slate-900 equivalent for text
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
-         * Functie om de gebruiker naar de hoofdapp te sturen met de geselecteerde weergave.
-         * @param {string} viewId - De ID van de gewenste weergave (e.g., 'orderForm', 'stock', 'finance').
-         */
-        function navigateToAppView(viewId) {
-            // PAD AANGEPAST: We gaan nu uit van de map Chiro-Bestellingen en bestellen.html
-            const appUrl = "./Chiro-Bestellingen/bestellen.html";
-            
-            // Gebruik window.location.href om daadwerkelijk te navigeren (of log voor preview)
-            // window.location.href = `${appUrl}#${viewId}`; 
-            console.log(`Navigatie geactiveerd naar interne weergave in ${appUrl}: ${viewId}`);
-
-            // Voor de preview, scroll de gebruiker naar de sectie om de illusie van navigeren te behouden
-            const section = document.getElementById('keuze');
-            if (section) {
-                section.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-        
-        /**
-         * Functie om de donkere modus te schakelen en in localStorage op te slaan.
-         */
-        function toggleDarkMode() {
-            const html = document.documentElement;
-            const currentMode = html.classList.contains('dark') ? 'light' : 'dark';
-            
-            if (currentMode === 'dark') {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                document.getElementById('theme-toggle-icon').setAttribute('data-lucide', 'sun');
-            } else {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                document.getElementById('theme-toggle-icon').setAttribute('data-lucide', 'moon');
-            }
-
-            // Herinitialiseer lucide iconen na verandering
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
-
-        // Functie om Lucide iconen te initialiseren na het laden van de DOM
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialiseer Dark Mode op basis van localStorage
-            const storedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
-                document.documentElement.classList.add('dark');
-                document.getElementById('theme-toggle-icon').setAttribute('data-lucide', 'sun');
-            } else {
-                document.getElementById('theme-toggle-icon').setAttribute('data-lucide', 'moon');
-            }
-            
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-
-            // Sticky header scroll effect
-            const header = document.querySelector('.sticky-header');
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 0) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
-
-            // Card link hover effect instellen
-            document.querySelectorAll('.card-link-hover').forEach(link => {
-                let hoverColor = '';
-                let shadowColor = '';
-                let darkHoverColor = '';
-                let darkShadowColor = '';
-
-                // Bepaal de kleuren op basis van de dichtstbijzijnde card container
-                const card = link.closest('.group.relative.bg-white, .group.relative.dark\\:bg-slate-800');
-                if (card) {
-                    // Light Mode Colors
-                    if (card.querySelector('.from-blue-500')) {
-                        hoverColor = 'rgba(30, 64, 175, 0.05)'; 
-                        shadowColor = 'rgba(30, 64, 175, 0.1)';
-                        darkHoverColor = 'rgba(30, 64, 175, 0.2)'; // Donkerdere tint
-                        darkShadowColor = 'rgba(30, 64, 175, 0.4)';
-                    } else if (card.querySelector('.from-red-500')) {
-                        hoverColor = 'rgba(230, 46, 46, 0.05)'; 
-                        shadowColor = 'rgba(230, 46, 46, 0.1)';
-                        darkHoverColor = 'rgba(230, 46, 46, 0.2)'; 
-                        darkShadowColor = 'rgba(230, 46, 46, 0.4)';
-                    } else if (card.querySelector('.from-emerald-500')) {
-                        hoverColor = 'rgba(5, 150, 105, 0.05)'; 
-                        shadowColor = 'rgba(5, 150, 105, 0.1)';
-                        darkHoverColor = 'rgba(5, 150, 105, 0.2)'; 
-                        darkShadowColor = 'rgba(5, 150, 105, 0.4)';
-                    }
-                }
-
-                link.style.setProperty('--hover-color', hoverColor);
-                link.style.setProperty('--shadow-color', shadowColor);
-                link.style.setProperty('--dark-hover-color', darkHoverColor);
-                link.style.setProperty('--dark-shadow-color', darkShadowColor);
-            });
-            
-            // Intersection Observer for card animations
-            const cards = document.querySelectorAll('.animate-card');
-
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const card = entry.target;
-                        // Haal alle te animeren kaarten op in de DOM order
-                        const allCards = Array.from(document.querySelectorAll('.animate-card'));
-                        const index = allCards.indexOf(card);
-                        
-                        // Pas de vertraging toe op basis van de index
-                        setTimeout(() => {
-                            card.classList.remove('card-hidden');
-                            card.classList.add('card-visible');
-                        }, index * 150); // Stagger delay van 150ms
-                        
-                        observer.unobserve(card); // Stop observing after animation
-                    }
-                });
-            }, {
-                rootMargin: '0px',
-                threshold: 0.1 // Trigger when 10% of the card is visible
-            });
-
-            cards.forEach(card => {
-                card.classList.add('card-hidden');
-                observer.observe(card);
-            });
-        });
-    </script>
 </head>
-<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen antialiased transition-colors duration-300 dark:bg-slate-900 dark:text-slate-200">
+<body class="selection:bg-indigo-500 selection:text-white">
 
-    <header class="sticky-header bg-white shadow-lg shadow-slate-200/50 px-4 py-2 sm:px-8 transition-all duration-200 dark:bg-slate-800 dark:shadow-slate-900/50">
-        <div class="flex justify-between items-center max-w-7xl mx-auto">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-chiro-red rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-500/30 overflow-hidden chiro-logo-container">
-                    <img src="Chirologo_1200px.png" alt="Chiro Logo" class="w-full h-full object-cover chiro-logo-img">
+    <div id="toast-container" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-6 sm:right-6 sm:w-auto z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <div id="auth-view" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[#0f111a] z-0"></div>
+        <div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 1.5s;"></div>
+
+        <div class="w-full max-w-md bg-[#181b25]/80 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-2xl relative z-10">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/20">
+                    <span class="font-bold text-3xl text-white">C</span>
                 </div>
-                <div>
-                    <h1 class="text-xl font-extrabold text-chiro-dark leading-tight dark:text-white">Chiro Leidingportaal</h1>
-                    <p class="text-xs text-slate-500 font-medium dark:text-slate-400">
-                        Beheer & Interne Tools
-                    </p>
-                </div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Chiro Portaal</h1>
+                <p class="text-gray-400 text-sm mt-2">Log in met je leiding account.</p>
             </div>
-            
-            <div class="flex items-center gap-4">
+
+            <form id="login-form" class="space-y-4">
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="mail" class="h-5 w-5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                    </div>
+                    <input id="email" type="email" required class="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl leading-5 bg-[#0f111a] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition-all" placeholder="E-mailadres">
+                </div>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="lock" class="h-5 w-5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                    </div>
+                    <input id="password" type="password" required class="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl leading-5 bg-[#0f111a] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition-all" placeholder="Wachtwoord">
+                </div>
                 
-                <button id="theme-toggle" onclick="toggleDarkMode()" class="p-2 rounded-full text-slate-500 hover:text-chiro-blue hover:bg-slate-100 dark:text-slate-400 dark:hover:text-chiro-red dark:hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-chiro-blue/70">
-                    <i id="theme-toggle-icon" data-lucide="moon" class="w-6 h-6"></i>
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-95 flex items-center justify-center mt-6">
+                    <span id="login-btn-text">Aanmelden</span>
+                    <div id="login-loader" class="loader hidden"></div>
                 </button>
-                <nav class="hidden sm:flex space-x-1">
-                </nav>
-
-                <a href="https://chirodesselgem.weebly.com/" target="_blank" rel="noopener noreferrer" class="hidden md:flex group bg-chiro-blue text-white px-4 py-2.5 rounded-full text-base font-bold hover:bg-chiro-dark transition-all duration-300 shadow-xl shadow-blue-500/30 items-center gap-2 transform hover:scale-[1.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-chiro-blue/70">
-                    <span>Naar Hoofdsite</span>
-                    <i data-lucide="external-link" class="w-5 h-5"></i>
-                </a>
-            </div>
+            </form>
         </div>
-    </header>
-
-    <header class="hero-pattern text-white pt-64 pb-36 lg:pt-96 lg:pb-36 relative overflow-hidden">
-        
-        <div class="absolute inset-0 z-0">
-            <img src="/leidingsfoto.jpg" alt="Actuele Leiding Foto Achtergrond" class="w-full h-full object-cover object-center opacity-90" onerror="this.onerror=null;this.src='https://placehold.co/1440x800/273747/white?text=LEIDINGSFOTO+HIER+'+(window.innerWidth+'x'+800)">
-            <div class="absolute inset-0 bg-chiro-dark/10"></div> 
-        </div>
-
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-chiro-red opacity-10 rounded-full blur-3xl z-10"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-chiro-blue opacity-10 rounded-full blur-3xl z-10"></div>
-        
-        <div class="relative z-20 max-w-5xl mx-auto px-4 text-center hero-content">
-            
-            <h1 class="text-4xl md:text-7xl font-extrabold mb-4 tracking-tighter leading-tight drop-shadow-2xl opacity-0">
-                Portaalsite CHD
-            </h1>
-            <p class="text-lg md:text-xl text-slate-100 mb-10 font-medium max-w-3xl mx-auto leading-relaxed drop-shadow-2xl opacity-0" style="animation-delay: 0.3s;">
-                Maak een keuze van wat je wilt zien.
-            </p>
-        </div>
-        
-        <svg class="wave-separator z-20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path fill="currentColor" fill-opacity="1" d="M0,192L48,170.7C96,149,192,107,288,112C384,117,480,171,576,192C672,213,768,203,864,181.3C960,160,1056,128,1152,112C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-        </svg>
-    </header>
-
-    <main id="keuze" class="flex-grow max-w-7xl mx-auto px-4 py-16 relative z-30 mb-20 md:mb-0">
-        
-        <div class="text-center max-w-4xl mx-auto mb-16">
-            <h2 class="text-4xl font-extrabold text-chiro-dark mb-3 tracking-tight dark:text-white">Onze Interne Tools</h2>
-            <p class="text-slate-500 text-lg font-medium dark:text-slate-400">
-                Kies uit de beheeromgevingen om Statistieken, Broodshop en Financiën van de Chiro te regelen.
-            </p>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-8">
-            
-            <div class="group relative bg-white rounded-2xl p-8 shadow-2xl shadow-slate-300/50 hover:shadow-custom-blue transition-all duration-300 border border-slate-100 hover:-translate-y-1.5 flex flex-col h-full animate-card dark:bg-slate-800 dark:shadow-slate-900/50 dark:border-slate-700">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
-                <div class="flex flex-col h-full">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="w-14 h-14 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-xl group-hover:shadow-blue-300/50 dark:bg-blue-800/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
-                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6"/><path d="M9 10h6"/></svg>
-                        </div>
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider group-hover:text-blue-600 transition-colors dark:group-hover:text-blue-400">Statistieken</span>
-                    </div>
-                    
-                    <h2 class="text-4xl font-extrabold text-slate-900 mb-3 group-hover:text-blue-700 transition-colors dark:text-white dark:group-hover:text-blue-400">Leden & Administratie </h2>
-                    <p class="text-slate-500 mb-6 leading-relaxed font-semibold dark:text-slate-400">
-                        Registreer de wekelijkse aanwezigheden, beheer de ledenlijsten en raadpleeg Statistieken.
-                    </p>
-                    
-                    <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-2 dark:border-slate-700">
-                        <a href="./Chiro-Aanwezigheden/Telling.html" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-                                <span class="text-sm font-bold text-slate-700 group-hover:text-blue-700 dark:text-slate-200 dark:group-hover:text-blue-400">Naar Dashboard/Telling</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors dark:group-hover:text-blue-400"></i>
-                        </a>
-                        <a href="./Chiro-Aanwezigheden/Overzicht.html" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                <span class="text-sm font-medium text-slate-600 group-hover:text-blue-700 dark:text-slate-300 dark:group-hover:text-blue-400">Leden Overzicht</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors dark:group-hover:text-blue-400"></i>
-                        </a>
-                        <a href="./Chiro-Aanwezigheden/Statistieken.html" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
-                                <span class="text-sm font-medium text-slate-600 group-hover/link:text-blue-700 dark:text-slate-300 dark:group-hover:text-blue-400">Statistieken</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors dark:group-hover:text-blue-400"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="group relative bg-white rounded-2xl p-8 shadow-2xl shadow-slate-300/50 hover:shadow-custom-red transition-all duration-300 border border-slate-100 hover:-translate-y-1.5 flex flex-col h-full animate-card dark:bg-slate-800 dark:shadow-slate-900/50 dark:border-slate-700">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
-                <div class="flex flex-col h-full">
-                    <div class="flex items-start justify-between mb-6">
-                         <div class="w-14 h-14 bg-red-50 rounded-3xl flex items-center justify-center text-red-600 group-hover:bg-chiro-red group-hover:text-white transition-all duration-300 shadow-xl group-hover:shadow-red-300/50 dark:bg-red-800/20 dark:text-red-400 dark:group-hover:bg-chiro-red dark:group-hover:text-white">
-                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                        </div>
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider group-hover:text-red-600 transition-colors dark:group-hover:text-red-400">Webshop</span>
-                    </div>
-                    
-                    <h2 class="text-4xl font-extrabold text-slate-900 mb-3 group-hover:text-chiro-red transition-colors dark:text-white dark:group-hover:text-red-400">Brood Bestellingen App</h2>
-                    <p class="text-slate-500 mb-6 leading-relaxed font-semibold dark:text-slate-400">
-                        Bestel en beheer de inkomende orders (brood, etc.), check de voorraad en houd de financiële kosten bij.
-                    </p>
-                    
-                    <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-2 dark:border-slate-700">
-                        
-                        <a href="./Chiro-Bestellingen/bestellen.html#orderForm" onclick="navigateToAppView('orderForm')" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-chiro-red">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-chiro-red dark:text-red-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.58L23 6H6"/></svg>
-                                <span class="text-sm font-bold text-slate-700 group-hover:text-chiro-red dark:text-slate-200 dark:group-hover:text-red-400">Nieuwe Bestelling Plaatsen</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-chiro-red transition-colors dark:group-hover:text-red-400"></i>
-                        </a>
-                        
-                        <a href="./Chiro-Bestellingen/bestellen.html#preparation" onclick="navigateToAppView('preparation')" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-chiro-red">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-red-500 dark:group-hover:text-red-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6h10"/><path d="M7 12h10"/><path d="M7 18h10"/><path d="m3 6 2 2 4-4"/><path d="m3 18 2 2 4-4"/><path d="m3 12 2 2 4-4"/></svg>
-                                <span class="text-sm font-medium text-slate-600 group-hover/link:text-chiro-red dark:text-slate-300 dark:group-hover:text-red-400">Klaarzetten Overzicht</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-chiro-red transition-colors dark:group-hover:text-red-400"></i>
-                        </a>
-                        
-                        <a href="./Chiro-Bestellingen/bestellen.html#stock" onclick="navigateToAppView('stock')" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-chiro-red">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-red-500 dark:group-hover:text-red-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.89 2.89a2 2 0 0 0-3.78 0l-.36 1.76a2 2 0 0 1-1.76 1.76L2.89 8.89a2 2 0 0 0 0 3.78l1.76.36a2 2 0 0 1 1.76 1.76L8.89 21.11a2 2 0 0 0 3.78 0l.36-1.76a2 2 0 0 1 1.76-1.76L21.11 15.11a2 2 0 0 0 0-3.78l-1.76-.36a2 2 0 0 1-1.76-1.76L15.11 2.89z"/></svg>
-                                <span class="text-sm font-medium text-slate-600 group-hover:text-chiro-red dark:text-slate-300 dark:group-hover:text-red-400">
-                                    Voorraad Beheer <i data-lucide="lock" class="w-3 h-3 inline ml-1 text-red-500/70 dark:text-red-400/70"></i>
-                                </span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-chiro-red transition-colors dark:group-hover:text-red-400"></i>
-                        </a>
-
-                        <a href="./Chiro-Bestellingen/bestellen.html#finance" onclick="navigateToAppView('finance')" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-chiro-red">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-red-500 dark:group-hover:text-red-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14h.01"/><path d="M13 10V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4l2 4 2-4z"/></svg>
-                                <span class="text-sm font-medium text-slate-600 group-hover/link:text-chiro-red dark:text-slate-300 dark:group-hover:text-red-400">
-                                    Kosten Overzicht (Financiën) <i data-lucide="lock" class="w-3 h-3 inline ml-1 text-red-500/70 dark:text-red-400/70"></i>
-                                </span>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-chiro-red transition-colors dark:group-hover:text-red-400"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="md:col-span-2 flex justify-center">
-                <div class="group relative bg-white rounded-2xl p-8 shadow-2xl shadow-slate-300/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 border border-slate-100 hover:-translate-y-1.5 flex flex-col h-full w-full md:max-w-xl animate-card dark:bg-slate-800 dark:shadow-slate-900/50 dark:border-slate-700">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    
-                    <div class="flex flex-col h-full">
-                        <div class="flex items-start justify-between mb-6">
-                            <div class="w-14 h-14 bg-emerald-50 rounded-3xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-xl group-hover:shadow-emerald-300/50 dark:bg-emerald-800/20 dark:text-emerald-400 dark:group-hover:bg-emerald-600 dark:group-hover:text-white">
-                                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h-2"/><path d="M20 12h-2"/></svg>
-                            </div>
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors dark:group-hover:text-emerald-400">Kassies</span>
-                        </div>
-                        
-                        <h2 class="text-4xl font-extrabold text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors dark:text-white dark:group-hover:text-emerald-400">Virtuele Rekening</h2>
-                        <p class="text-slate-500 mb-6 leading-relaxed font-semibold dark:text-slate-400">
-                            Beheer de Virtuele Rekeningen per afdeling.
-                        </p>
-                        
-                        <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-2 dark:border-slate-700">
-                            
-                            <a href="./Financien/Budget.html" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18 9-6 6-4-4-5 4"/></svg>
-                                    <span class="text-sm font-bold text-slate-700 group-hover/link:text-emerald-700 dark:text-slate-200 dark:group-hover:text-emerald-400">Virtuele Rekening  25-26</span>
-                                </div>
-                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors dark:group-hover:text-emerald-400"></i>
-                            </a>
-                            
-                            <a href="./Financien/Transacties.html" class="card-link-hover flex items-center justify-between p-2 -mx-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5c-1.5 0-2.8 1-3.6 2.4l-1-1C13 4 11 4 11 4S9 4 7 5l-2 3c-1 1-1 3 0 4l-1 1c-1.5 1.5-1.5 4 0 5.5l1 1c1.5 1.5 4 1.5 5.5 0l1-1c1 1 3 1 4 0l2-3c1-1 1-3 0-4L19 5z"/><path d="M15 10H8.5"/><path d="M16 15h-2"/></svg>
-                                    <span class="text-sm font-medium text-slate-600 group-hover/link:text-emerald-700 dark:text-slate-300 dark:group-hover:text-emerald-400">Transacties Invoeren</span>
-                                </div>
-                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors dark:group-hover:text-emerald-400"></i>
-                            </a>
-                            
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="mt-20 relative bg-slate-100 rounded-xl shadow-xl border border-slate-200 p-6 md:p-8 overflow-hidden animate-card dark:bg-slate-800 dark:border-slate-700 dark:shadow-slate-900/50">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-chiro-red to-red-400"></div>
-
-            <h3 class="text-sm font-bold text-slate-600 uppercase tracking-widest mb-8 text-center mt-2 dark:text-slate-400">Snelle Tools</h3>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                
-                <a href="kalender.html" class="quick-tool-link flex items-center p-4 rounded-xl bg-white hover:bg-red-50/70 hover:shadow-lg hover:shadow-red-500/20 transition-all border border-red-100 group transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:bg-slate-900 dark:border-slate-700 dark:hover:bg-slate-700/70">
-                    <span class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-2xl mr-4 shadow-md group-hover:bg-red-200 transition-all quick-tool-icon dark:bg-red-900/50 dark:group-hover:bg-red-900/70">📅</span>
-                    <div>
-                        <div class="font-extrabold text-slate-800 text-lg dark:text-white">Jaarkalender</div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Bekijk de wekelijkse planning en evenementen.</div>
-                    </div>
-                </a>
-                
-                <a href="https://chiro.matticedepaepe.be/verhuur" class="quick-tool-link flex items-center p-4 rounded-xl bg-white hover:bg-blue-50/70 hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-blue-100 group transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-900 dark:border-slate-700 dark:hover:bg-slate-700/70">
-                    <span class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-2xl mr-4 shadow-md group-hover:bg-blue-200 transition-all quick-tool-icon dark:bg-blue-900/50 dark:group-hover:bg-blue-900/70">📍</span>
-                    <div>
-                        <div class="font-extrabold text-slate-800 text-lg dark:text-white">Taakjes</div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Controleer reserveringen.</div>
-                    </div>
-                </a>
-                
-                <a href="https://chiro.matticedepaepe.be/contact" class="quick-tool-link flex items-center p-4 rounded-xl bg-white hover:bg-orange-50/70 hover:shadow-lg hover:shadow-orange-500/20 transition-all border border-orange-100 group transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:bg-slate-900 dark:border-slate-700 dark:hover:bg-slate-700/70">
-                    <span class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-2xl mr-4 shadow-md group-hover:bg-orange-200 transition-all quick-tool-icon dark:bg-orange-900/50 dark:group-hover:bg-orange-900/70">📞</span>
-                    <div>
-                        <div class="font-extrabold text-slate-800 text-lg dark:text-white">Contact</div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Nuttige telefoonnummers en contactpersonen voor noodgevallen.</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </main>
-
-    <div class="bottom-nav md:hidden h-16 flex items-center justify-around">
-        <a href="https://chiro.matticedepaepe.be" class="nav-item active flex flex-col items-center justify-center text-slate-400 hover:text-chiro-red transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chiro-red/50 focus-visible:ring-offset-2 dark:text-slate-500 dark:hover:text-chiro-red">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-            <span class="text-[10px] font-semibold mt-0.5">Home</span>
-        </a>
-        
-        <a href="#keuze" class="nav-item flex flex-col items-center justify-center text-slate-400 hover:text-chiro-red transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chiro-red/50 focus-visible:ring-offset-2 dark:text-slate-500 dark:hover:text-chiro-red">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6"/><path d="M9 10h6"/></svg>
-            <span class="text-[10px] font-semibold mt-0.5">Statistieken</span>
-        </a>
-
-        <a href="https://chirodesselgem.weebly.com/" class="nav-item flex flex-col items-center justify-center text-slate-400 hover:text-chiro-red transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chiro-red/50 focus-visible:ring-offset-2 dark:text-slate-500 dark:hover:text-chiro-red">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13V8a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h5"/><line x1="10" x2="14" y1="10" y2="10"/><line x1="12" x2="12" y1="8" y2="12"/><path d="M15 17h6"/><path d="M18 14v6"/></svg>
-            <span class="text-[10px] font-semibold mt-0.5">Hoofdsite</span>
-        </a>
-
-        <a href="./kalender.html" class="nav-item flex flex-col items-center justify-center text-slate-400 hover:text-chiro-red transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chiro-red/50 focus-visible:ring-offset-2 dark:text-slate-500 dark:hover:text-chiro-red">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            <span class="text-[10px] font-semibold mt-0.5">Kalender</span>
-        </a>
     </div>
 
-    <footer class="mt-auto bg-chiro-dark text-slate-200 border-t border-slate-700 hidden md:block dark:bg-slate-900 dark:border-slate-800">
-        <div class="max-w-7xl mx-auto px-6 py-10">
-            <div class="grid grid-cols-3 gap-8 border-b border-slate-800 pb-8 mb-8 dark:border-slate-700">
-                <div class="col-span-3 md:col-span-1">
-                    <div class="flex items-center space-x-2 mb-3">
-                        <div class="w-8 h-8 bg-chiro-red rounded-lg flex items-center justify-center text-white overflow-hidden">
-                            <img src="Chirologo_1200px.png" alt="Chiro Logo" class="w-full h-full object-cover">
-                        </div>
-                        <span class="text-lg font-extrabold text-white">Chiro CHD</span>
+    <div id="app-layout" class="hidden-view min-h-screen bg-[#0f111a] text-white overflow-x-hidden relative">
+        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+            <div class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] opacity-30 animate-pulse-slow"></div>
+            <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] opacity-30 animate-pulse-slow" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+        <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 lg:w-64 bg-[#181b25]/95 backdrop-blur-xl border-r border-gray-800/50 transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) -translate-x-full lg:translate-x-0 shadow-2xl">
+            <div class="flex flex-col h-full">
+                <div class="h-20 flex items-center px-6 border-b border-gray-800/50 bg-[#181b25]/50">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
+                        <span class="font-bold text-xl text-white">C</span>
                     </div>
-                    <p class="text-sm text-slate-300 dark:text-slate-400">Het interne portaal voor leiding van Chiro Desselgem. Efficiënt beheer en planning.</p>
-                </div>
-                
-                <div class="col-span-1 md:col-span-1">
-                    <h4 class="text-sm font-bold text-chiro-blue uppercase tracking-wider mb-4 dark:text-blue-400">Navigatie</h4>
-                    <ul class="space-y-2 text-sm text-slate-200 dark:text-slate-400">
-                        <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="#keuze" class="hover:text-white transition-colors">Interne Tools</a></li>
-                        <li><a href="./Financien/Budget.html" class="hover:text-white transition-colors">Financiën</a></li>
-                    </ul>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight block leading-none text-white">CHIRO</span>
+                        <span class="text-xs font-semibold text-indigo-400 tracking-widest uppercase">Portaal</span>
+                    </div>
+                    <button id="close-sidebar" class="ml-auto lg:hidden text-gray-400 hover:text-white p-1"><i data-lucide="x"></i></button>
                 </div>
 
-                <div class="col-span-2 md:col-span-1">
-                    <h4 class="text-sm font-bold text-chiro-red uppercase tracking-wider mb-4 dark:text-red-400">Externe Links</h4>
-                    <ul class="space-y-2 text-sm text-slate-200 dark:text-slate-400">
-                        <li><a href="https://chirodesselgem.weebly.com/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Hoofdsite Chiro</a></li>
-                        <li><a href="kalender.html" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Jaarkalender</a></li>
-                        <li><a href="https://chiro.matticedepaepe.be/contact" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Contact / Verhuur</a></li>
-                    </ul>
+                <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 no-scrollbar" id="sidebar-nav">
+                    </nav>
+
+                <div class="p-4 m-4 rounded-xl bg-[#13161f] border border-gray-800/50">
+                    <div class="flex items-center">
+                        <div id="user-avatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-sm font-bold ring-2 ring-[#0f111a] shadow-sm text-white">
+                            L
+                        </div>
+                        <div class="ml-3 overflow-hidden">
+                            <p id="user-name-display" class="text-sm font-semibold truncate text-white">User</p>
+                            <div class="flex items-center mt-0.5">
+                                <i data-lucide="shield" class="w-3 h-3 text-amber-400 mr-1"></i>
+                                <p id="user-role-display" class="text-xs text-amber-400 font-bold truncate">Rol</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </aside>
+
+        <div class="lg:ml-64 min-h-screen flex flex-col transition-all duration-500 relative z-10">
+            <header class="h-20 bg-[#0f111a]/80 backdrop-blur-xl border-b border-gray-800/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
+                <button id="open-sidebar" class="lg:hidden p-2 -ml-2 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 transition-colors"><i data-lucide="menu"></i></button>
+                
+                <div class="hidden md:flex items-center bg-[#181b25] rounded-xl px-4 py-2.5 border border-gray-800 w-96 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all shadow-sm group">
+                    <i data-lucide="search" class="text-gray-500 mr-3 group-focus-within:text-indigo-400 transition-colors h-4 w-4"></i>
+                    <input type="text" placeholder="Zoek..." class="bg-transparent border-none focus:outline-none text-sm w-full placeholder-gray-600 text-gray-200">
+                </div>
+
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <div class="hidden md:flex items-center px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2 animate-pulse"></span>
+                        <span id="header-role-badge" class="text-xs font-medium text-amber-500">Rol: ...</span>
+                    </div>
+                    <button class="p-2.5 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 relative transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="bell"></i>
+                        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0f111a] animate-pulse"></span>
+                    </button>
+                </div>
+            </header>
+
+            <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
+                <div id="view-dashboard"></div>
+                <div id="view-leden" class="hidden-view"></div>
+                <div id="view-telling" class="hidden-view"></div>
+                <div id="view-statistieken" class="hidden-view"></div>
+                <div id="view-webshop" class="hidden-view"></div>
+                <div id="view-financien" class="hidden-view"></div>
+                <div id="view-admin" class="hidden-view"></div>
+                <div id="view-profiel" class="hidden-view"></div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        // LET OP: U MOET DEZE VELDEN AANPASSEN MET UW ECHTE SUPABASE DETAILS
+        const SUPABASE_URL = 'https://bqplzquqmfxqobfkmwua.supabase.co'; // <--- VERVANG DOOR UW URL
+        const SUPABASE_ANON_KEY = 'sb_publishable_j-gb151Rn4_kEYyNRtwGUQ_YypwI5xe'; // <--- VERVANG DOOR UW ANON KEY
+        
+        const COLLECTION_NAMES = {
+            PORTAL_USERS: 'portal_users',
+            LEDEN: 'leden',
+            BROOD_ORDERS: 'bread_orders',
+            FINANCES: 'finances',
+            BROOD_STOCK_DOC: 'bread_stock',
+            BROOD_PRICES_DOC: 'bread_prices',
+            AANWEZIGHEDEN: 'aanwezigheden',
+            WEBSHOP_COSTS: 'webshop_monthly_costs' 
+        };
+
+        const USER_ROLES = {
+            LEIDING: { label: 'Leiding', color: 'bg-blue-500/10 text-blue-400', canDoAttendance: false, canDoAdmin: false, canViewFinances: false, canDoWebshopAdmin: false },
+            STATISTIEKEN: { label: 'Statistieken', color: 'bg-teal-500/10 text-teal-400', canDoAttendance: true, canDoAdmin: true, canViewFinances: false, canDoWebshopAdmin: false },
+            KASSIER: { label: 'Kassier', color: 'bg-emerald-500/10 text-emerald-400', canDoAttendance: true, canDoAdmin: false, canViewFinances: true, canDoWebshopAdmin: true },
+            VB: { label: 'VB', color: 'bg-purple-500/10 text-purple-400', canDoAttendance: true, canDoAdmin: false, canViewFinances: true, canDoWebshopAdmin: false },
+            ADMIN: { label: 'Admin', color: 'bg-rose-500/10 text-rose-400', canDoAttendance: true, canDoAdmin: true, canViewFinances: true, canDoWebshopAdmin: true },
+            KOOKOUDER: { label: 'Kookouder', color: 'bg-orange-500/10 text-orange-400', canDoAttendance: false, canDoAdmin: false, canViewFinances: false, canDoWebshopAdmin: true }
+        };
+
+        const AFDELINGEN_CONFIG = [
+            { naam: "Sloebers", kleur: "purple", border: "border-purple-500", bg: "bg-purple-500", text: "text-purple-400", btn: "bg-purple-600 hover:bg-purple-500" },
+            { naam: "Speelclub Jongens", kleur: "yellow", border: "border-yellow-500", bg: "bg-yellow-500", text: "text-yellow-400", btn: "bg-yellow-600 hover:bg-yellow-500" },
+            { naam: "Speelclub Meisjes", kleur: "yellow", border: "border-yellow-500", bg: "bg-yellow-500", text: "text-yellow-400", btn: "bg-yellow-600 hover:bg-yellow-500" },
+            { naam: "Rakkers", kleur: "green", border: "border-emerald-500", bg: "bg-emerald-500", text: "text-emerald-400", btn: "bg-emerald-600 hover:bg-emerald-500" },
+            { naam: "Kwiks", kleur: "green", border: "border-emerald-500", bg: "bg-emerald-500", text: "text-emerald-400", btn: "bg-emerald-600 hover:bg-emerald-500" },
+            { naam: "Toppers", kleur: "red", border: "border-rose-500", bg: "bg-rose-500", text: "text-rose-400", btn: "bg-rose-600 hover:bg-rose-500" },
+            { naam: "Tippers", kleur: "red", border: "border-rose-500", bg: "bg-rose-500", text: "text-rose-400", btn: "bg-rose-600 hover:bg-rose-500" },
+            { naam: "Kerels", kleur: "blue", border: "border-blue-500", bg: "bg-blue-500", text: "text-blue-400", btn: "bg-blue-600 hover:bg-blue-500" },
+            { naam: "Tiptiens", kleur: "blue", border: "border-blue-500", bg: "bg-blue-500", text: "text-blue-400", btn: "bg-blue-600 hover:bg-blue-500" },
+            { naam: "Aspis", kleur: "orange", border: "border-orange-500", bg: "bg-orange-500", text: "text-orange-400", btn: "bg-orange-600 hover:bg-orange-500" },
+        ];
+
+        // --- GLOBAL STATE ---
+        let supabase;
+        let currentUser = null; 
+        let currentAuthUser = null; 
+        let activeTab = 'dashboard';
+        let membersData = [];
+        let counts = {}; 
+        let notes = {};
+
+        // Webshop State
+        let webshopDate = "";
+        let webshopOrders = [];
+        let webshopStock = { choco: 0, jam: 0 };
+        let webshopPrices = { whiteBread: 0.50, brownBread: 0.60, choco: 3.50, jam: 2.80 }; // Default prices
+        let webshopActiveTab = 'order';
+        let webshopCostMonth = new Date().toISOString().slice(0, 7);
+
+        // Finances State
+        let financesData = [];
+        let financesActiveTab = 'weekly'; // weekly, actions, log
+
+        // Admin State
+        let adminUsers = [];
+        let adminAttendance = [];
+        
+        // =========================================================================
+        // --- CORE UTILITY FUNCTIONS (Defined early for access) ---
+        // =========================================================================
+
+        function getNextSunday() {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const daysUntilSunday = (7 - dayOfWeek) % 7;
+            const nextSunday = new Date(now);
+            nextSunday.setDate(now.getDate() + daysUntilSunday);
+            return nextSunday.toISOString().split('T')[0];
+        }
+        
+        function formatCurrency(amount) {
+            return `€ ${parseFloat(amount).toFixed(2)}`;
+        }
+
+        function showToast(msg, type = 'success') {
+            const el = document.createElement('div');
+            el.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-md transition-all duration-300 w-full sm:w-auto transform translate-y-0 opacity-100 ${type === 'success' ? 'bg-[#0f111a]/95 border-emerald-500/30 text-emerald-400' : 'bg-[#0f111a]/95 border-rose-500/30 text-rose-400'}`;
+            el.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-5 h-5"></i><div class="text-sm font-medium pr-2">${msg}</div>`;
+            document.getElementById('toast-container').appendChild(el);
+            lucide.createIcons();
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4000);
+        }
+
+        // --- HELPER RENDERING COMPONENTS (Used by Renderers) ---
+
+        function renderQuickStat(label, value, trend, isPos, icon, colorClass, bgClass) {
+            return `
+            <div class="bg-[#181b25] border border-gray-800/50 p-5 rounded-2xl hover:border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2.5 rounded-xl ${bgClass} ${colorClass} group-hover:scale-110 transition-transform"><i data-lucide="${icon}" class="w-5 h-5"></i></div>
+                    <div class="flex items-center text-xs font-medium px-2.5 py-1 rounded-lg ${isPos ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
+                        ${isPos ? '<i data-lucide="trending-up" class="w-3 h-3 mr-1"></i>' : '<i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i>'}
+                        ${trend}
+                    </div>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">${label}</p>
+                    <h3 class="text-2xl font-bold text-white">${value}</h3>
+                </div>
+            </div>`;
+        }
+
+        function renderActionItem(icon, text, action, hasAccess) {
+            const isDisabled = !hasAccess;
+            return `
+            <button onclick="${!isDisabled ? action : ''}" class="w-full flex items-center justify-between py-3.5 px-4 rounded-xl transition-all duration-200 group border border-transparent ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#1f2330] hover:border-gray-800/80 cursor-pointer'}">
+                <div class="flex items-center">
+                    <i data-lucide="${icon}" class="w-4 h-4 mr-4 ${isDisabled ? 'text-gray-500' : 'text-gray-400 group-hover:text-indigo-400'}"></i>
+                    <span class="text-sm font-medium ${isDisabled ? 'text-gray-500' : 'text-gray-300 group-hover:text-white'}">${text}</span>
+                </div>
+                <i data-lucide="${hasAccess ? 'chevron-right' : 'lock'}" class="w-4 h-4 ${hasAccess ? 'text-gray-600 group-hover:text-indigo-400' : 'text-rose-500/80'}"></i>
+            </button>`;
+        }
+
+        function renderPrepItem(id, label, count, price) {
+            return `
+            <div class="bg-[#1f2330] p-4 rounded-xl border border-gray-700/50 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-sm font-bold text-white block">${label}</span>
+                    <span class="text-xs text-gray-500">${formatCurrency(price)} per stuk/pot</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl font-extrabold text-indigo-400">${count}</span>
+                    <i data-lucide="check-circle" class="w-6 h-6 text-emerald-500 opacity-50 hover:opacity-100 cursor-pointer" onclick="showToast('${label} gemarkeerd als klaar!', 'success')"></i>
+                </div>
+            </div>`;
+        }
+
+        function renderPriceInput(id, label, value) {
+            return `
+            <div class="relative group">
+                <label for="${id}" class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">${label}</label>
+                <span class="absolute left-3 top-[37px] text-gray-500 font-bold">€</span>
+                <input type="number" step="0.01" id="${id}" value="${value.toFixed(2)}" required class="w-full bg-[#0f111a] border border-gray-700 rounded-xl p-3 pl-7 text-white focus:border-indigo-500 outline-none transition-colors font-bold">
+            </div>`;
+        }
+
+        function renderStockInput(id, label, value) {
+            return `
+            <div class="relative group">
+                <label for="${id}" class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">${label}</label>
+                <input type="number" id="${id}" value="${value}" min="0" required class="w-full bg-[#0f111a] border border-gray-700 rounded-xl p-3 text-white focus:border-indigo-500 outline-none transition-colors font-bold">
+            </div>`;
+        }
+
+        /**
+         * Helper to render the edit form for a specific order.
+         * @param {string} department 
+         * @param {object} items 
+         * @param {string} note 
+         */
+        function renderOrderEditForm(department, items, note, email) {
+            // Find the specific form and replace its content/values
+            document.getElementById('order-dept').value = department;
+            document.getElementById('order-email').value = email || ''; // Use email from existing order
+            document.getElementById('order-white').value = items.whiteBread || 0;
+            document.getElementById('order-brown').value = items.brownBread || 0;
+            document.getElementById('order-choco').value = items.choco || 0;
+            document.getElementById('order-jam').value = items.jam || 0;
+            document.getElementById('order-note').value = note || '';
+
+            // Update the form button text to indicate editing
+            const formTitle = document.querySelector('#webshop-order-form h3');
+            if(formTitle) formTitle.innerText = `Bestelling Bewerken: ${department}`;
+            const saveButton = document.querySelector('#webshop-order-form button[type="submit"]');
+            if(saveButton) saveButton.innerText = `Bestelling Opslaan (Bewerkt)`;
+
+            // Scroll to form to make it visible
+            document.getElementById('webshop-order-container').scrollIntoView({ behavior: 'smooth' });
+
+            showToast(`Bestelling van ${department} geladen voor bewerking.`, 'info');
+        }
+
+        // =========================================================================
+        // --- DATA & ACTION HELPERS (Used by Renderers/Forms) ---
+        // =========================================================================
+        
+        // MEMBER ACTIONS
+        // *** FUNCTIES VOOR LEDENBEHEER VERWIJDERD ***
+        async function addMember(e) { e.preventDefault(); showToast("Ledenbeheer is uitgeschakeld.", "info"); }
+        async function deleteMember(id) { showToast("Ledenbeheer is uitgeschakeld.", "info"); }
+        function toggleAddMemberForm() { /* do nothing */ }
+
+
+        // ATTENDANCE HELPERS
+        async function loadAttendanceDate(date) {
+            const { data, error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').eq('datum', date).single();
+            AFDELINGEN_CONFIG.forEach(a => { counts[a.naam] = 0; notes[a.naam] = ""; });
+            const generalNoteEl = document.getElementById('general-note');
+            if(generalNoteEl) generalNoteEl.value = "";
+            if (data) {
+                if(generalNoteEl) generalNoteEl.value = data.algemeneMededeling || "";
+                if(data.afdelingen) {
+                    data.afdelingen.forEach(item => { counts[item.naam] = item.aantal; notes[item.naam] = item.opmerking; });
+                }
+                showToast("Gegevens geladen ✔️", "info");
+            }
+            updateUIFromState();
+        }
+
+        function updateCount(naam, delta) {
+            counts[naam] = Math.max(0, (counts[naam] || 0) + delta);
+            updateUIFromState();
+        }
+
+        function updateUIFromState() {
+            let total = 0;
+            AFDELINGEN_CONFIG.forEach(a => {
+                const safeName = a.naam.replace(/\s/g, '');
+                const val = counts[a.naam];
+                const el = document.getElementById(`count-${safeName}`);
+                if(el) el.innerText = val;
+                const noteEl = document.getElementById(`note-${safeName}`);
+                // Only update note if it's currently populated from DB to prevent input loss during counting
+                if(noteEl && notes[a.naam]) noteEl.value = notes[a.naam]; 
+                total += val;
+            });
+            const totalDisplay = document.getElementById('total-count-display');
+            if(totalDisplay) totalDisplay.innerText = total;
+        }
+
+        async function saveAttendance() {
+            const date = document.getElementById('att-date').value;
+            const generalNote = document.getElementById('general-note').value;
+            const total = parseInt(document.getElementById('total-count-display').innerText);
+            AFDELINGEN_CONFIG.forEach(a => {
+                const safeName = a.naam.replace(/\s/g, '');
+                const el = document.getElementById(`note-${safeName}`);
+                if(el) notes[a.naam] = el.value;
+            });
+            const afdelingenData = AFDELINGEN_CONFIG.map(afd => ({ naam: afd.naam, aantal: counts[afd.naam], opmerking: notes[afd.naam] }));
+            const { error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).upsert({
+                datum: date,
+                timestamp: new Date().toISOString(),
+                algemeneMededeling: generalNote,
+                totaalAantal: total,
+                afdelingen: afdelingenData
+            }, { onConflict: 'datum' });
+            if (error) showToast("Fout bij opslaan", "error");
+            else { showToast("Telling opgeslagen!", "success"); renderAttendance('overview'); }
+        }
+
+        async function deleteAttendance(date) {
+            if(confirm("Weet je zeker dat je deze telling permanent wilt verwijderen?")) {
+                const { error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).delete().eq('datum', date);
+                if (error) showToast("Fout bij verwijderen", "error");
+                else { showToast("Telling verwijderd", "success"); renderAttendance('overview'); }
+            }
+        }
+        
+        // WEBSHOP HELPERS
+        async function fetchWebshopData(date) {
+            const { data: ordersData } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS).select('*').eq('date', date);
+            webshopOrders = ordersData || [];
+            
+            // Fetch Stock (ID 1 is the single stock record)
+            const { data: stockData } = await supabase.from(COLLECTION_NAMES.BROOD_STOCK_DOC).select('choco, jam').eq('id', 1).single();
+            if (stockData) webshopStock = { choco: stockData.choco || 0, jam: stockData.jam || 0 };
+            
+            // Fetch Prices (ID 1 is the single price record)
+            const { data: pricesData } = await supabase.from(COLLECTION_NAMES.BROOD_PRICES_DOC).select('whiteBread, brownBread, choco, jam').eq('id', 1).single();
+            // Merge with defaults to ensure all keys exist
+            if (pricesData) webshopPrices = { ...webshopPrices, ...pricesData };
+        }
+
+        /**
+         * Voegt een financiële transactie toe voor de webshop.
+         * @param {string} department De afdeling waar de kosten worden geboekt.
+         * @param {number} amount Het bedrag (positief voor inkomst, negatief voor uitgave/annulatie).
+         * @param {string} type 'income' of 'expense'.
+         * @param {string} description De beschrijving voor het logboek.
+         * @param {string} date De datum van de bestelling (voor sortering).
+         */
+        async function addWebshopTransaction(department, amount, type, description, date) {
+            if (!USER_ROLES[currentUser.role].canViewFinances) return; // Alleen kassier/admin mag dit loggen
+
+            const transType = type || (amount >= 0 ? 'income' : 'expense'); // Income is de default, maar bij negatieve bedragen forceren we expense
+            const absAmount = Math.abs(amount);
+
+            const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).insert({
+                description: description,
+                amount: absAmount,
+                type: transType,
+                category: 'Webshop Brood',
+                afdeling: department,
+                user: currentUser.name || 'Webshop Systeem',
+                created_at: date || new Date().toISOString()
+            });
+
+            if (error) {
+                showToast(`Fout bij loggen financiën voor ${department}: ${error.message}`, "error");
+            } else {
+                // Toon geen succes toast om de flow van saveOrder/deleteOrder niet te onderbreken, tenzij het kritiek is
+                console.log(`Webshop transactie gelogd: ${description} (${formatCurrency(amount)})`);
+            }
+        }
+
+
+        async function saveOrder(e) {
+            e.preventDefault();
+            const dept = document.getElementById('order-dept').value;
+            const email = document.getElementById('order-email').value;
+            const white = parseInt(document.getElementById('order-white').value) || 0;
+            const brown = parseInt(document.getElementById('order-brown').value) || 0;
+            const choco = parseInt(document.getElementById('order-choco').value) || 0;
+            const jam = parseInt(document.getElementById('order-jam').value) || 0;
+
+            const existingOrder = webshopOrders.find(o => o.department === dept);
+
+            if (white === 0 && brown === 0 && choco === 0 && jam === 0) {
+                showToast("Voer een bestelling in (minstens 1 item)", "error");
+                return;
+            }
+            if (!dept) {
+                showToast("Kies een afdeling!", "error");
+                return;
+            }
+            
+            // Calculate total cost for the current order
+            const totalCost = (white * webshopPrices.whiteBread) + (brown * webshopPrices.brownBread) + (choco * webshopPrices.choco) + (jam * webshopPrices.jam);
+            const prevCost = existingOrder ? ((existingOrder.items.whiteBread || 0) * webshopPrices.whiteBread + (existingOrder.items.brownBread || 0) * webshopPrices.brownBread + (existingOrder.items.choco || 0) * webshopPrices.choco + (existingOrder.items.jam || 0) * webshopPrices.jam) : 0;
+            const costDiff = totalCost - prevCost; // Positive diff = more money owed/more items, Negative diff = less money owed/fewer items
+
+            const orderData = {
+                id: `${webshopDate}_${dept}`, 
+                date: webshopDate, 
+                department: dept, 
+                items: { whiteBread: white, brownBread: brown, choco: choco, jam: jam },
+                note: document.getElementById('order-note').value, 
+                email: email, 
+                total_cost: totalCost, // Store total cost on order (for simpler log entries)
+                lastEditedBy: currentUser.name
+            };
+
+            let stockUpdate = false;
+
+            try {
+                // 1. Check/Update Stock for toppings
+                if (choco > 0 || jam > 0 || existingOrder) { // Check if new order uses toppings OR if previous order used toppings
+                    const prevChoco = existingOrder ? (existingOrder.items.choco || 0) : 0;
+                    const prevJam = existingOrder ? (existingOrder.items.jam || 0) : 0;
+
+                    const chocoDiff = choco - prevChoco;
+                    const jamDiff = jam - prevJam;
+
+                    // Only proceed if there is a net change in toppings
+                    if (chocoDiff !== 0 || jamDiff !== 0) {
+                        const { data: currentStock, error: stockFetchError } = await supabase
+                            .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
+                            .select('choco, jam')
+                            .eq('id', 1)
+                            .single();
+
+                        if (stockFetchError || !currentStock) throw new Error("Voorraad niet gevonden.");
+
+                        const newChoco = (currentStock.choco || 0) - chocoDiff;
+                        const newJam = (currentStock.jam || 0) - jamDiff;
+
+                        if (newChoco < 0 || newJam < 0) {
+                            showToast("Onvoldoende voorraad. Bestelling niet geplaatst/bewerkt.", "error");
+                            return; // Stop execution
+                        }
+                        
+                        const { error: stockUpdateError } = await supabase
+                            .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
+                            .update({ choco: newChoco, jam: newJam })
+                            .eq('id', 1);
+
+                        if (stockUpdateError) throw stockUpdateError;
+                        stockUpdate = true;
+                    }
+                }
+
+                // 2. Place/Update Order (Upsert)
+                const { error: orderError } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS).upsert(orderData);
+                if(orderError) throw orderError;
+                
+                // 3. Log Financial Change (Net change only)
+                if (Math.abs(costDiff) > 0.01) { // Only log if there's a significant financial change
+                    const type = costDiff >= 0 ? 'income' : 'expense'; // New cost is an 'income' to the chirokas from the afdeling, less cost is an 'expense' (refund)
+                    const desc = existingOrder ? `Webshop Bewerking: ${dept}` : `Webshop Bestelling: ${dept}`;
+                    await addWebshopTransaction(dept, costDiff, type, desc, webshopDate);
+                }
+
+                showToast("Bestelling opgeslagen!" + (stockUpdate ? " (Voorraad bijgewerkt)" : ""), "success"); 
+                renderWebshop('order'); 
+            } catch (error) {
+                showToast(`Fout bij bestelling: ${error.message}`, "error"); 
+            }
+        }
+
+        /**
+         * Loads an existing order into the form for editing.
+         * @param {string} dept 
+         * @param {string} date 
+         */
+        async function editOrder(dept, date) {
+            if (webshopDate !== date) {
+                webshopDate = date;
+                await fetchWebshopData(date);
+                // Re-render to ensure date and list are correct, then call again to fill form
+                await renderWebshop('order');
+            }
+
+            const order = webshopOrders.find(o => o.department === dept);
+            if (order) {
+                renderOrderEditForm(order.department, order.items, order.note, order.email);
+            } else {
+                showToast('Bestelling niet gevonden.', 'error');
+            }
+        }
+
+        /**
+         * Deletes an existing order and adjusts stock.
+         * @param {string} dept 
+         * @param {string} date 
+         */
+        async function deleteOrder(dept, date) {
+            if (!confirm(`Wil je de bestelling van ${dept} op ${new Date(date).toLocaleDateString('nl-BE')} PERMANENT verwijderen? Dit zal de voorraad voor smeergoed terug aanpassen en de kosten (€${(webshopOrders.find(o => o.department === dept)?.total_cost || 0).toFixed(2)}) als 'uitgave' in Financiën loggen.`)) {
+                return;
+            }
+
+            try {
+                const orderToDelete = webshopOrders.find(o => o.department === dept && o.date === date);
+                if (!orderToDelete) throw new Error("Bestelling niet gevonden.");
+                
+                const totalCost = orderToDelete.total_cost || 0; // Use stored total cost
+
+                // 1. Revert Stock
+                const chocoRevert = orderToDelete.items.choco || 0;
+                const jamRevert = orderToDelete.items.jam || 0;
+
+                if (chocoRevert > 0 || jamRevert > 0) {
+                    const { data: currentStock } = await supabase
+                            .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
+                            .select('choco, jam')
+                            .eq('id', 1)
+                            .single();
+
+                    const newChoco = (currentStock.choco || 0) + chocoRevert;
+                    const newJam = (currentStock.jam || 0) + jamRevert;
+                    
+                    await supabase
+                        .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
+                        .update({ choco: newChoco, jam: newJam })
+                        .eq('id', 1);
+                }
+
+                // 2. Delete Order
+                const { error: deleteError } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS)
+                    .delete()
+                    .eq('id', `${date}_${dept}`);
+
+                if (deleteError) throw deleteError;
+                
+                // 3. Log Financial Change (Revert cost as an expense/refund)
+                if (totalCost > 0) {
+                    await addWebshopTransaction(dept, -totalCost, 'expense', `Webshop Annulatie: ${dept} op ${new Date(date).toLocaleDateString('nl-BE')}`, date);
+                }
+
+                showToast("Bestelling verwijderd! (Voorraad hersteld en Financiën bijgewerkt)", "success");
+                renderWebshop('order'); // Re-render to update the list
+            } catch (error) {
+                showToast(`Fout bij verwijderen: ${error.message}`, "error");
+            }
+        }
+
+        async function saveStockAndPrices(e) {
+            e.preventDefault();
+            
+            const stockChoco = parseInt(document.getElementById('stock-choco').value);
+            const stockJam = parseInt(document.getElementById('stock-jam').value);
+            const priceWhite = parseFloat(document.getElementById('price-white').value);
+            const priceBrown = parseFloat(document.getElementById('price-brown').value);
+            const priceChoco = parseFloat(document.getElementById('price-choco').value);
+            const priceJam = parseFloat(document.getElementById('price-jam').value);
+            
+            if (isNaN(priceWhite) || isNaN(priceBrown) || isNaN(priceChoco) || isNaN(priceJam)) {
+                showToast("Gelieve alle prijzen in te vullen", "error");
+                return;
+            }
+            if (isNaN(stockChoco) || isNaN(stockJam)) {
+                showToast("Gelieve alle voorraad aan te geven", "error");
+                return;
+            }
+
+            try {
+                // Save Stock (always ID 1)
+                await supabase.from(COLLECTION_NAMES.BROOD_STOCK_DOC).upsert({
+                    id: 1,
+                    choco: stockChoco,
+                    jam: stockJam
+                }, { onConflict: 'id' });
+
+                // Save Prices (always ID 1)
+                await supabase.from(COLLECTION_NAMES.BROOD_PRICES_DOC).upsert({
+                    id: 1,
+                    whiteBread: priceWhite,
+                    brownBread: priceBrown,
+                    choco: priceChoco,
+                    jam: priceJam
+                }, { onConflict: 'id' });
+
+                showToast("Voorraad en prijzen opgeslagen!", "success");
+                renderWebshop('stock');
+            } catch (error) {
+                showToast("Fout bij opslaan: " + error.message, "error");
+            }
+        }
+
+        async function calculateMonthlyCosts(month) {
+            const date = new Date(month + '-01');
+            const startOfMonth = date.toISOString().split('T')[0];
+            date.setMonth(date.getMonth() + 1);
+            const endOfMonth = date.toISOString().split('T')[0];
+
+            // 1. Fetch relevant orders
+            const { data: orders } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS)
+                .select('department, items, date, total_cost')
+                .gte('date', startOfMonth)
+                .lt('date', endOfMonth);
+
+            // 2. Fetch prices (ensure webshopPrices is up to date with DB data)
+            await fetchWebshopData(webshopDate); 
+
+            const totals = {};
+            AFDELINGEN_CONFIG.forEach(a => {
+                totals[a.naam] = { whiteBread: 0, brownBread: 0, choco: 0, jam: 0, totalCost: 0 };
+            });
+
+            if (orders) {
+                orders.forEach(order => {
+                    const dept = order.department;
+                    const items = order.items;
+
+                    if (totals[dept]) {
+                        // Use stored total_cost if available, otherwise recalculate
+                        const totalCost = order.total_cost || ((items.whiteBread || 0) * (webshopPrices.whiteBread || 0) + (items.brownBread || 0) * (webshopPrices.brownBread || 0) + (items.choco || 0) * (webshopPrices.choco || 0) + (items.jam || 0) * (webshopPrices.jam || 0));
+
+                        totals[dept].whiteBread += (items.whiteBread || 0);
+                        totals[dept].brownBread += (items.brownBread || 0);
+                        totals[dept].choco += (items.choco || 0);
+                        totals[dept].jam += (items.jam || 0);
+                        totals[dept].totalCost += totalCost;
+                    }
+                });
+            }
+            
+            // Save monthly summary to dedicated collection (for historical finance reporting)
+            const monthlyData = AFDELINGEN_CONFIG.map(a => ({
+                month: month,
+                afdeling: a.naam,
+                cost: parseFloat(totals[a.naam].totalCost.toFixed(2)),
+                details: totals[a.naam]
+            }));
+            // Upsert based on month and afdeling (composite key approach)
+            await supabase.from(COLLECTION_NAMES.WEBSHOP_COSTS).upsert(monthlyData, { onConflict: 'month,afdeling' });
+
+            return { totals, costs: Object.fromEntries(Object.entries(totals).map(([dept, data]) => [dept, data.totalCost])), month };
+        }
+        
+        async function exportMonthlyCosts(month) {
+            const results = await calculateMonthlyCosts(month);
+            const totals = results.totals;
+            const costs = results.costs;
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Afdeling;Wit Brood (Aantal);Bruin Brood (Aantal);Choco Potten (Aantal);Jam Potten (Aantal);Totale Kost (€)\n";
+
+            let grandTotal = 0;
+            AFDELINGEN_CONFIG.forEach(afd => {
+                const data = totals[afd.naam] || { whiteBread: 0, brownBread: 0, choco: 0, jam: 0, totalCost: 0 };
+                const row = [
+                    afd.naam,
+                    data.whiteBread,
+                    data.brownBread,
+                    data.choco,
+                    data.jam,
+                    data.totalCost.toFixed(2).replace('.', ',')
+                ].join(';');
+                csvContent += row + "\n";
+                grandTotal += data.totalCost;
+            });
+
+            csvContent += `Totaal;;;;;${grandTotal.toFixed(2).replace('.', ',')}\n`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `webshop_kosten_${month}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Export gestart! CSV-bestand gedownload.", "success");
+        }
+        
+        // FINANCE ACTIONS
+        async function saveWeeklyFinances() {
+            const date = document.getElementById('fin-date').value;
+            let transactions = [];
+
+            // 1. Process Income per Dept
+            AFDELINGEN_CONFIG.forEach(afd => {
+                const safeName = afd.naam.replace(/\s/g, '');
+                const amountEl = document.getElementById(`fin-inc-${safeName}`);
+                const remarkEl = document.getElementById(`fin-rem-${safeName}`);
+                
+                const amount = parseFloat(amountEl.value);
+                if (amountEl && amount > 0) {
+                    transactions.push({
+                        description: `Zondag Kas ${remarkEl.value ? `(${remarkEl.value})` : ''}`,
+                        amount: amount,
+                        type: 'income',
+                        category: 'Kasactie',
+                        user: currentUser.name,
+                        afdeling: afd.naam,
+                        created_at: new Date(date).toISOString()
+                    });
+                }
+            });
+
+            // 2. Process Cost
+            const costDesc = document.getElementById('fin-cost-desc').value;
+            const costAmount = parseFloat(document.getElementById('fin-cost-amount').value);
+            
+            if (!isNaN(costAmount) && costAmount > 0) {
+                transactions.push({
+                    description: costDesc || 'Algemene Kosten (Vieruurtje/Materiaal)',
+                    amount: costAmount,
+                    type: 'expense',
+                    category: '4uurtje', 
+                    user: currentUser.name,
+                    afdeling: 'Hoofdkas', 
+                    created_at: new Date(date).toISOString()
+                });
+            }
+
+            if (transactions.length === 0) {
+                showToast("Vul minstens één bedrag in", "error");
+                return;
+            }
+
+            const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).insert(transactions);
+            if (error) {
+                showToast("Fout bij opslaan: " + error.message, "error");
+            } else {
+                showToast("Weekafrekening succesvol opgeslagen!", "success");
+                renderFinances('log'); // Go to log
+            }
+        }
+
+        async function addTransaction(e) {
+            e.preventDefault();
+            const desc = document.getElementById('trans-desc').value;
+            const amount = parseFloat(document.getElementById('trans-amount').value);
+            const type = document.getElementById('trans-type').value;
+            const cat = document.getElementById('trans-cat').value;
+            const dept = document.getElementById('trans-dept').value;
+
+            if(!dept) { showToast("Kies een afdeling!", "error"); return; }
+            if(isNaN(amount) || amount <= 0) { showToast("Voer een geldig bedrag in!", "error"); return; }
+
+            const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).insert({
+                description: desc,
+                amount: amount,
+                type: type,
+                category: cat,
+                afdeling: dept,
+                user: currentUser.name || 'Onbekend',
+                created_at: new Date().toISOString()
+            });
+
+            if (error) showToast("Fout bij toevoegen: " + error.message, "error");
+            else { showToast("Transactie toegevoegd", "success"); renderFinances('log'); }
+        }
+
+        async function deleteTransaction(id) {
+            if(confirm("Weet je zeker dat je deze transactie permanent wilt verwijderen?")) {
+                const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).delete().eq('id', id);
+                if (error) showToast("Fout bij verwijderen", "error");
+                else { showToast("Verwijderd", "success"); renderFinances(financesActiveTab); }
+            }
+        }
+        
+        // ADMIN ACTIONS
+        async function fetchAdminUsers() {
+            const { data, error } = await supabase
+                .from(COLLECTION_NAMES.PORTAL_USERS)
+                .select('*');
+            if (error) { showToast('Fout bij laden gebruikers: ' + error.message, 'error'); return []; }
+            return data || [];
+        }
+
+        async function updateUserRole(userId, newRole) {
+            const { error } = await supabase
+                .from(COLLECTION_NAMES.PORTAL_USERS)
+                .update({ role: newRole })
+                .eq('id', userId);
+
+            if (error) {
+                showToast('Fout bij wijzigen rol: ' + error.message, 'error');
+            } else {
+                showToast('Rol succesvol bijgewerkt! Gebruiker zal opnieuw moeten inloggen.', 'success');
+                await renderAdmin(); // Re-render the admin view
+            }
+        }
+
+
+        // =========================================================================
+        // --- ALL APPLICATION RENDERERS (Grouped for scope access) ---
+        // =========================================================================
+        
+        // --- DASHBOARD RENDERER ---
+        async function renderDashboard() {
+            const nextSunday = getNextSunday();
+            // Datum formattering
+            const nextSundayDate = new Date(nextSunday);
+            const formattedSunday = nextSundayDate.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' });
+
+            const { count: orderCount } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS).select('*', { count: 'exact', head: true }).eq('date', nextSunday);
+            
+            const { data: attendanceData } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('totaalAantal, datum').order('datum', { ascending: false }).limit(2);
+            let attendanceLabel = "Nog geen data";
+            let attendanceTrend = "Geen trend";
+            let isPos = true;
+            if (attendanceData && attendanceData.length > 0) {
+                const latest = attendanceData[0].totaalAantal;
+                attendanceLabel = `${latest} aanw.`;
+                if (attendanceData.length > 1) {
+                    const prev = attendanceData[1].totaalAantal;
+                    const diff = latest - prev;
+                    attendanceTrend = diff >= 0 ? `+${diff} vs vorig` : `${diff} vs vorig`;
+                    isPos = diff >= 0;
+                }
+            }
+
+            const role = USER_ROLES[currentUser.role];
+            
+            const html = `
+            <div class="mb-8 p-6 sm:p-10 rounded-[2rem] bg-gradient-to-br from-[#1e2330] to-[#12141c] border border-gray-800/50 relative overflow-hidden shadow-2xl group">
+                <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none animate-pulse-slow"></div>
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+                    <div class="max-w-2xl">
+                        <div class="inline-block px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-3 uppercase tracking-wider">Dashboard</div>
+                        <h1 class="text-3xl sm:text-4xl font-extrabold mb-3 text-white leading-tight tracking-tight">Welkom terug, ${currentUser.name || 'Leiding'}! 👋</h1>
+                        <p class="text-gray-400 text-base sm:text-lg leading-relaxed max-w-xl">
+                            Alles staat klaar voor de volgende Chiro-zondag. Check je bestellingen en bereid de telling voor.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-3 sm:flex-nowrap">
+                            <button onclick="switchTab('telling')" class="flex-1 sm:flex-none px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg hover:-translate-y-0.5 flex justify-center items-center group/btn">
+                                <i data-lucide="clipboard-list" class="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform"></i> Telling
+                            </button>
+                            <button onclick="openWebshopTab('order')" class="flex-1 sm:flex-none px-6 py-3.5 bg-[#2a3040] hover:bg-[#32394d] text-gray-200 hover:text-white rounded-xl font-bold transition-all border border-gray-700/50 hover:border-gray-600 hover:-translate-y-0.5 flex justify-center items-center group/btn">
+                                <i data-lucide="shopping-cart" class="w-4 h-4 mr-2 text-emerald-400 group-hover/btn:scale-110 transition-transform"></i> Bestellen
+                            </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                ${renderQuickStat('Volgende Chiro', formattedSunday, 'Zondag', true, 'calendar', 'text-blue-400', 'bg-blue-400/10')}
+                ${renderQuickStat('Brood Bestellingen', orderCount || 0, 'Voor zondag', true, 'shopping-bag', 'text-rose-400', 'bg-rose-400/10')}
+                ${renderQuickStat('Laatste Telling', attendanceLabel, attendanceTrend, isPos, 'users', 'text-amber-400', 'bg-amber-400/10')}
             </div>
             
-            <div class="text-center text-xs text-slate-500 dark:text-slate-600">
-                &copy; 2025 CHIRO MATTICE DEPAEPE. Alle rechten voorbehouden.
+            <div class="mb-5 px-1 flex items-center justify-between">
+                <h2 class="text-xl font-bold text-gray-200">Modules</h2>
             </div>
-        </div>
-    </footer>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="glass-card rounded-[2rem] p-6 shadow-xl flex flex-col h-full hover:border-indigo-500/30 transition-all duration-300 group hover:-translate-y-1">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="p-3.5 rounded-2xl bg-indigo-400/10 text-indigo-400 shadow-lg group-hover:bg-indigo-500 group-hover:text-white transition-all"><i data-lucide="clipboard-list" class="w-6 h-6"></i></div>
+                    </div>
+                    <h2 class="text-xl font-bold text-white mb-2.5">Administratie</h2>
+                    <p class="text-gray-400 text-sm mb-6">Voer de wekelijkse aanwezigheidstelling in en bekijk statistieken.</p>
+                    <div class="mt-auto space-y-2">
+                        ${renderActionItem('edit-3', 'Nieuwe Telling', "switchTab('telling')", role.canDoAttendance)}
+                        ${renderActionItem('layout-list', 'Overzicht', "switchTab('telling')", true)} ${renderActionItem('bar-chart-3', 'Statistieken', "switchTab('statistieken')", true)}
+                    </div>
+                </div>
 
+                <div class="glass-card rounded-[2rem] p-6 shadow-xl flex flex-col h-full hover:border-rose-500/30 transition-all duration-300 group hover:-translate-y-1">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="p-3.5 rounded-2xl bg-rose-400/10 text-rose-400 shadow-lg group-hover:bg-rose-500 group-hover:text-white transition-all"><i data-lucide="shopping-bag" class="w-6 h-6"></i></div>
+                    </div>
+                    <h2 class="text-xl font-bold text-white mb-2.5">Webshop</h2>
+                    <p class="text-gray-400 text-sm mb-6">Bestel broodjes voor zondag, beheer voorraad en bekijk bestellingen.</p>
+                    <div class="mt-auto space-y-2">
+                        ${renderActionItem('shopping-cart', 'Nieuwe Bestelling', "openWebshopTab('order')", true)}
+                        ${renderActionItem('list-checks', 'Klaarzetten', "openWebshopTab('prep')", true)} 
+                        ${renderActionItem('boxes', 'Voorraad & Prijzen', "openWebshopTab('stock')", role.canDoWebshopAdmin)}
+                        ${renderActionItem('euro', 'Maandelijkse Kosten', "openWebshopTab('costs')", role.canViewFinances)}
+                    </div>
+                </div>
+            </div>
+            `;
+            document.getElementById('view-dashboard').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- PROFILE RENDERER ---
+        function renderProfile() {
+            const canAccessAdmin = USER_ROLES[currentUser.role].canDoAdmin;
+            let adminSection = '';
+
+            if (canAccessAdmin) {
+                adminSection = `
+                <div class="bg-gradient-to-br from-[#181b25] to-[#1e2330] border border-amber-500/30 rounded-2xl p-6 shadow-lg relative overflow-hidden group mb-6">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                    <div class="flex items-start justify-between relative z-10">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center mb-2">
+                                <i data-lucide="shield" class="mr-2 text-amber-400 w-5 h-5"></i> Beheerders Console
+                            </h3>
+                            <p class="text-gray-400 text-sm mb-4 max-w-md">
+                                Beheer gebruikersrollen.
+                            </p>
+                        </div>
+                        <button onclick="switchTab('admin')" class="w-full sm:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 flex items-center justify-center">
+                            Open Admin Dashboard <i data-lucide="chevron-right" class="ml-2 w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }
+
+            const html = `
+            <div class="max-w-4xl mx-auto animate-in fade-in zoom-in duration-300">
+                <div class="mb-8"><h2 class="text-2xl font-bold text-white">Mijn Profiel</h2></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1 bg-[#181b25] border border-gray-800/50 rounded-2xl p-6 shadow-xl flex flex-col items-center text-center">
+                        <div id="user-avatar-lg" class="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-3xl font-bold ring-4 ring-[#0f111a] shadow-2xl text-white mb-4">
+                            ${(currentUser.name || 'U').charAt(0)}
+                        </div>
+                        <h3 class="text-xl font-bold text-white">${currentUser.name}</h3>
+                        <p class="text-gray-500 text-sm mt-1">${currentUser.email}</p>
+                        <div class="flex items-center mt-4 px-3 py-1 rounded-full border ${USER_ROLES[currentUser.role].color.replace('text-', 'border-').replace('bg-', 'border-opacity-30 ')} text-white">
+                            <i data-lucide="shield" class="w-3 h-3 mr-1.5"></i>
+                            <span class="text-xs font-bold uppercase tracking-wide">${USER_ROLES[currentUser.role].label}</span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        ${adminSection}
+                        <div class="bg-[#181b25] border border-gray-800/50 rounded-2xl p-6 shadow-lg">
+                            <h3 class="text-lg font-bold text-white mb-4 flex items-center"><i data-lucide="settings" class="mr-2 text-gray-400 w-5 h-5"></i> Algemene Instellingen</h3>
+                            <button onclick="handleLogout()" class="w-full mt-2 p-3 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center justify-center font-bold text-sm">
+                                <i data-lucide="log-out" class="mr-2 w-4 h-4"></i> Afmelden
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            document.getElementById('view-profiel').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- MEMBERS RENDERER (VERWIJDERD) ---
+        async function renderMembers() {
+            // Ledenbeheer is verwijderd
+            document.getElementById('view-leden').innerHTML = `
+            <div class="flex flex-col items-center justify-center min-h-[300px] text-center text-gray-500 bg-[#181b25] rounded-2xl p-8 border border-gray-800">
+                <i data-lucide="user-x" class="w-12 h-12 text-rose-500 mb-4"></i>
+                <h2 class="text-xl font-bold text-white mb-2">Ledenbeheer Is Uitgeschakeld</h2>
+                <p>Deze module is op verzoek verwijderd voor een vereenvoudigde administratie.</p>
+            </div>`;
+            lucide.createIcons();
+        }
+
+
+        // --- ATTENDANCE RENDERER ---
+        async function renderAttendance(mode = 'overview') {
+            const role = USER_ROLES[currentUser.role];
+            const isAuthAdmin = role.canDoAdmin;
+
+            if (!role.canDoAttendance && mode === 'input') mode = 'overview';
+            
+            let html = `
+            <div class="flex gap-4 mb-6">
+                ${role.canDoAttendance ? `<button onclick="renderAttendance('input')" class="flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center ${mode === 'input' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-[#181b25] text-gray-400 hover:bg-[#1f2330]'}"><i data-lucide="edit-3" class="w-4 h-4 mr-2"></i> Nieuwe Telling</button>` : ''}
+                <button onclick="renderAttendance('overview')" class="flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center ${mode === 'overview' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-[#181b25] text-gray-400 hover:bg-[#1f2330]'}"><i data-lucide="layout-list" class="w-4 h-4 mr-2"></i> Overzicht</button>
+            </div>`;
+
+            if (mode === 'input') {
+                // Input logic setup (defaults)
+                const nextSunday = getNextSunday();
+                // Initialize counts
+                AFDELINGEN_CONFIG.forEach(a => { counts[a.naam] = 0; notes[a.naam] = ""; });
+
+                html += `
+                <div class="bg-[#181b25] border border-gray-800/50 rounded-2xl p-6 mb-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-[#1f2330] p-3 rounded-xl border border-gray-700/50"><i data-lucide="calendar" class="text-indigo-400 w-6 h-6"></i></div>
+                        <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Datum</label><input id="att-date" type="date" value="${nextSunday}" onchange="loadAttendanceDate(this.value)" class="bg-transparent text-white font-bold text-lg border-none focus:ring-0 p-0"></div>
+                    </div>
+                    <div class="flex items-center gap-6 bg-indigo-500/10 px-6 py-3 rounded-xl border border-indigo-500/20"><span class="text-sm font-bold text-indigo-300">TOTAAL</span><span id="total-count-display" class="text-3xl font-extrabold text-white">0</span></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                    ${AFDELINGEN_CONFIG.map(afd => `
+                    <div class="bg-[#181b25] border-t-4 ${afd.border} rounded-xl shadow-lg p-5 flex flex-col hover:-translate-y-1 transition-transform border-x border-b border-gray-800/50">
+                        <h3 class="text-lg font-bold text-white text-center mb-4">${afd.naam}</h3>
+                        <div class="flex items-center justify-center gap-4 mb-4">
+                            <button onclick="updateCount('${afd.naam}', -1)" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg active:scale-95 ${afd.btn}">-</button>
+                            <span id="count-${afd.naam.replace(/\s/g, '')}" class="text-4xl font-extrabold text-gray-200 w-16 text-center tabular-nums">0</span>
+                            <button onclick="updateCount('${afd.naam}', 1)" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg active:scale-95 ${afd.btn}">+</button>
+                        </div>
+                        <textarea id="note-${afd.naam.replace(/\s/g, '')}" placeholder="Opmerking..." rows="2" class="w-full bg-[#0f111a] border border-gray-700/50 rounded-lg p-2 text-sm text-gray-300 focus:outline-none resize-none mt-auto"></textarea>
+                    </div>`).join('')}
+                </div>
+                
+                <div class="bg-[#181b25] border border-gray-800/50 rounded-2xl p-6 shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-3">Algemene Mededeling</h3>
+                    <textarea id="general-note" placeholder="Type hier..." class="w-full bg-[#0f111a] border border-gray-700/50 rounded-xl p-4 text-gray-300 focus:outline-none min-h-[100px] mb-6"></textarea>
+                    <div class="flex justify-end"><button onclick="saveAttendance()" class="flex items-center justify-center px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-lg transition-all"><i data-lucide="save" class="w-5 h-5 mr-2"></i> Opslaan</button></div>
+                </div>`;
+                
+                document.getElementById('view-telling').innerHTML = html;
+                loadAttendanceDate(nextSunday); // Initial fetch
+            } else {
+                // Overview Mode with Grouping (Sleeker look)
+                const { data, error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: false });
+                if (error) { showToast("Fout bij laden historiek", "error"); return; }
+                
+                if(!data || data.length === 0) {
+                    document.getElementById('view-telling').innerHTML = html + '<div class="text-center text-gray-500 mt-10">Geen historiek gevonden.</div>';
+                    lucide.createIcons();
+                    return;
+                }
+
+                const grouped = {};
+                data.forEach(item => {
+                    const dateObj = new Date(item.datum);
+                    const monthName = dateObj.toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' });
+                    
+                    if (!grouped[monthName]) grouped[monthName] = [];
+                    grouped[monthName].push(item);
+                });
+
+                // Generate HTML - Sleeker view
+                let listHtml = '<div class="space-y-6 animate-in fade-in zoom-in duration-300">';
+                
+                Object.keys(grouped).forEach(month => {
+                    const items = grouped[month];
+                    const monthTotal = items.reduce((acc, curr) => acc + (curr.totaalAantal || 0), 0);
+
+                    listHtml += `
+                        <div class="rounded-2xl border border-gray-700/50 shadow-xl overflow-hidden">
+                          <details class="group"> <summary class="flex cursor-pointer items-center justify-between bg-[#1e2330] px-6 py-4 transition-colors hover:bg-[#1f2536] select-none">
+                               <div class="flex items-center gap-3">
+                                   <i data-lucide="chevron-down" class="text-indigo-400 transition-transform group-open:rotate-180 w-5 h-5"></i>
+                                   <h3 class="text-xl font-bold text-white capitalize">${month}</h3>
+                               </div>
+                               <div class="flex items-center gap-4">
+                                   <span class="text-sm font-normal text-gray-400">Totaal: ${items.length} tell.</span>
+                                   <div class="h-10 px-4 flex items-center justify-center rounded-xl bg-indigo-500 text-lg font-bold text-white shadow-md">${monthTotal}</div>
+                               </div>
+                            </summary>
+                            <div class="p-6 space-y-4 bg-[#13161f]"> 
+                                ${items.map(item => {
+                                    const date = new Date(item.datum);
+                                    const dateStr = date.toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' });
+                                    
+                                    const sectionGrid = item.afdelingen ? item.afdelingen.filter(a => a.aantal > 0).map(a => `
+                                        <div class="bg-[#1f2330] p-3 rounded-lg border border-gray-700/50 flex flex-col justify-between h-full">
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">${a.naam}</span>
+                                            <span class="text-2xl font-extrabold text-white mt-1">${a.aantal}</span>
+                                            ${a.opmerking ? `<p class="text-[10px] text-gray-500 italic truncate pt-1 border-t border-gray-700/50 mt-1">${a.opmerking}</p>` : ''}
+                                        </div>
+                                    `).join('') : '';
+
+                                    return `
+                                        <div class="bg-[#181b25] border border-gray-700/50 rounded-xl overflow-hidden shadow-sm">
+                                                   <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-gray-700/50">
+                                                       <h4 class="text-lg font-bold text-white">${dateStr}</h4>
+                                                       <div class="flex items-center gap-4">
+                                                           <div class="bg-emerald-500/10 text-emerald-300 px-3 py-1 rounded-full text-sm font-bold border border-emerald-500/20">
+                                                               ${item.totaalAantal} totaal
+                                                           </div>
+                                                           ${isAuthAdmin ? `<button onclick="deleteAttendance('${item.datum}')" class="text-gray-600 hover:text-rose-400 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                                                       </div>
+                                                   </div>
+                                                   <div class="p-4">
+                                                       ${item.algemeneMededeling ? `<p class="text-sm text-gray-400 mb-5 italic border-l-4 border-indigo-500 pl-3">Algemeen: "${item.algemeneMededeling}"</p>` : ''}
+                                                       <details>
+                                                           <summary class="flex items-center text-sm font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer pt-2 border-t border-gray-700/50">
+                                                               <i data-lucide="chevron-right" class="w-4 h-4 mr-2 transition-transform duration-200 group-open:rotate-90"></i>
+                                                               <span>Details (${item.afdelingen.filter(a => a.aantal > 0).length} afdelingen)</span>
+                                                           </summary>
+                                                           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-4">
+                                                               ${sectionGrid || '<p class="text-gray-500 text-sm col-span-full text-center py-4">Geen details beschikbaar</p>'}
+                                                           </div>
+                                                       </details>
+                                                   </div>
+                                        </div>`;
+                                    }).join('')}
+                            </div>
+                          </details>
+                        </div>`;
+                });
+                
+                listHtml += '</div>';
+                document.getElementById('view-telling').innerHTML = html + listHtml;
+            }
+            lucide.createIcons();
+        }
+
+        // --- STATISTIEKEN RENDERER ---
+        async function renderStatistics() {
+            const container = document.getElementById('view-statistieken');
+            const { data: snapshotData, error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: true });
+            if (error || !snapshotData || snapshotData.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 mt-20">Geen statistieken beschikbaar.</div>'; return;
+            }
+            let allTotals = []; let afdelingStats = {};
+            AFDELINGEN_CONFIG.forEach(conf => { afdelingStats[conf.naam] = { total: 0, count: 0, max: 0, min: 9999, last: 0, prev: 0 }; });
+            
+            snapshotData.forEach((data, index) => {
+                let dailyTotal = 0;
+                if (data.afdelingen) {
+                    data.afdelingen.forEach(afd => {
+                        if (afdelingStats[afd.naam]) {
+                            if (index === snapshotData.length - 2) { afdelingStats[afd.naam].prev = afd.aantal; }
+                            
+                            afdelingStats[afd.naam].total += afd.aantal; afdelingStats[afd.naam].count++; 
+                            afdelingStats[afd.naam].max = Math.max(afdelingStats[afd.naam].max, afd.aantal);
+                            if(afd.aantal > 0) afdelingStats[afd.naam].min = Math.min(afdelingStats[afd.naam].min, afd.aantal);
+                            
+                            if (index === snapshotData.length - 1) {
+                                afdelingStats[afd.naam].last = afd.aantal;
+                            }
+                        }
+                        dailyTotal += afd.aantal;
+                    });
+                }
+                const totalStored = data.totaalAantal || dailyTotal;
+                allTotals.push({ date: data.datum, count: totalStored });
+            });
+            const totalDays = allTotals.length;
+            const totalAttendance = allTotals.reduce((acc, curr) => acc + curr.count, 0);
+            const averageAttendance = totalDays > 0 ? (totalAttendance / totalDays).toFixed(1) : 0;
+            const maxAttendance = Math.max(...allTotals.map(t => t.count), 0);
+            const chartData = AFDELINGEN_CONFIG.map(conf => {
+                const stat = afdelingStats[conf.naam];
+                if(stat.min === 9999) stat.min = 0;
+                const avg = stat.count > 0 ? (stat.total / stat.count).toFixed(1) : 0;
+                
+                // Trend Calculation vs AVG
+                let trendIcon = 'minus';
+                let trendColor = 'text-gray-400';
+                if(stat.last > avg) { trendIcon = 'trending-up'; trendColor = 'text-emerald-400'; }
+                else if(stat.last < avg) { trendIcon = 'trending-down'; trendColor = 'text-rose-400'; }
+
+                // Diff vs Prev
+                const diff = stat.last - stat.prev;
+                const diffStr = diff > 0 ? `+${diff}` : diff;
+                const diffColor = diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-gray-400');
+
+                return { ...conf, avg, stat, trendIcon, trendColor, diffStr, diffColor };
+            });
+            const maxAvg = Math.max(...chartData.map(d => parseFloat(d.avg))) || 1;
+
+            let html = `
+            <div class="animate-in fade-in zoom-in duration-300 pb-12">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="bar-chart-3" class="mr-3 text-indigo-400"></i> Statistieken</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    ${renderQuickStat('Geregistreerde Dagen', totalDays, '', true, 'calendar', 'text-blue-400', 'bg-blue-400/10')}
+                    ${renderQuickStat('Gemiddelde Opkomst', averageAttendance, 'per zondag', true, 'users', 'text-emerald-400', 'bg-emerald-400/10')}
+                    ${renderQuickStat('Hoogste Opkomst', maxAttendance, 'record', true, 'trending-up', 'text-amber-400', 'bg-amber-400/10')}
+                    ${renderQuickStat('Totaal Aanwezigheden', totalAttendance, 'dit seizoen', true, 'activity', 'text-purple-400', 'bg-purple-400/10')}
+                </div>
+                
+                <div class="bg-[#181b25] border border-gray-800/50 rounded-2xl p-6 shadow-xl mb-8">
+                    <h3 class="text-lg font-bold text-white mb-6">Gemiddelde Opkomst</h3>
+                    <div class="flex items-end space-x-2 sm:space-x-4 h-64 sm:h-80 w-full overflow-x-auto pb-2">
+                        ${chartData.map(item => `
+                            <div class="flex flex-col items-center justify-end h-full flex-1 group min-w-[40px]">
+                                <div class="text-xs text-white font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity">${item.avg}</div>
+                                <div class="w-full sm:w-16 rounded-t-lg transition-all duration-500 hover:brightness-110 ${item.bg}" style="height: ${(parseFloat(item.avg) / maxAvg) * 100}%; min-height: 4px;"></div>
+                                <div class="text-[10px] sm:text-xs text-gray-400 mt-3 text-center font-medium truncate w-full px-1" title="${item.naam}">${item.naam.split(' ')[0]}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold text-white mb-4">Details per Afdeling</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    ${chartData.map(item => `
+                        <div class="relative overflow-hidden rounded-2xl bg-[#1e2330] border border-gray-800 shadow-xl group hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
+                            <div class="h-2 w-full ${item.bg}"></div>
+                            <div class="p-5 flex-1 flex flex-col">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="font-bold text-lg text-white truncate max-w-[150px]">${item.naam}</h3>
+                                    <div class="p-2 rounded-lg ${item.bg} bg-opacity-20"><i data-lucide="users" class="w-4 h-4 ${item.text}"></i></div>
+                                </div>
+                                <div class="mb-4 text-center">
+                                    <span class="text-4xl font-extrabold text-white block">${item.avg}</span>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Gemiddeld</p>
+                                </div>
+                                
+                                <div class="bg-[#181b25] rounded-xl p-3 mb-4 border border-gray-700/30 space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs text-gray-400 font-bold uppercase">Laatste</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg font-bold text-white">${item.stat.last}</span>
+                                            <i data-lucide="${item.trendIcon}" class="w-4 h-4 ${item.trendColor}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 border-t border-gray-700/30">
+                                        <span class="text-xs text-gray-500">vs vorige</span>
+                                        <span class="text-xs font-bold ${item.diffColor}">${item.diffStr}</span>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-y-6 gap-x-2 border-t border-gray-700/50 pt-5 mt-auto">
+                                    <div class="text-center border-r border-gray-700/50">
+                                        <span class="block text-lg font-bold ${item.text}">${item.stat.max}</span>
+                                        <span class="text-[10px] text-gray-500 uppercase font-semibold">Record</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <span class="block text-lg font-bold text-gray-300">${item.stat.min}</span>
+                                        <span class="text-[10px] text-gray-500 uppercase font-semibold">Min</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- WEBSHOP RENDERER ---
+        async function renderWebshop(subTab = 'order') {
+            const role = USER_ROLES[currentUser.role];
+            const canViewFinances = role.canViewFinances;
+            const canDoWebshopAdmin = role.canDoWebshopAdmin;
+
+            if ((subTab === 'stock' || subTab === 'costs') && !canViewFinances && !canDoWebshopAdmin) {
+                showToast('Geen toegang tot deze tab', 'error');
+                subTab = 'order';
+            }
+            webshopActiveTab = subTab;
+
+            if (subTab === 'order') {
+                // Ensure date is set to next Sunday if tab is explicitly opened, unless already set by editOrder
+                if (document.getElementById('view-webshop').classList.contains('hidden-view')) {
+                     webshopDate = getNextSunday();
+                }
+            }
+
+            const container = document.getElementById('view-webshop');
+            await fetchWebshopData(webshopDate);
+
+            const nav = `
+            <div class="flex flex-wrap gap-3 mb-6 bg-[#181b25] p-1.5 rounded-2xl border border-gray-800 w-full md:w-fit">
+                <button onclick="renderWebshop('order')" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'order' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="shopping-cart" class="mr-2 inline w-4 h-4"></i> Bestellen</button>
+                <button onclick="renderWebshop('prep')" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'prep' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="list-checks" class="mr-2 inline w-4 h-4"></i> Klaarzetten</button>
+                ${canDoWebshopAdmin ? `<button onclick="renderWebshop('stock')" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'stock' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="boxes" class="mr-2 inline w-4 h-4"></i> Voorraad</button>` : ''}
+                ${canViewFinances ? `<button onclick="renderWebshop('costs')" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'costs' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="euro" class="mr-2 inline w-4 h-4"></i> Kosten</button>` : ''}
+            </div>`;
+            
+            let content = '';
+
+            if(subTab === 'order') {
+                const existingOrdersHtml = webshopOrders.map(o => `
+                    <div class="bg-[#1f2330] p-4 rounded-xl border border-gray-700 mb-2 shadow-md flex justify-between items-center group/order">
+                        <div>
+                            <span class="text-indigo-400 font-bold">${o.department}</span>: ${o.items.whiteBread || 0} Wit, ${o.items.brownBread || 0} Bruin
+                            <div class="text-xs text-gray-500 mt-1">${o.items.choco || 0} Choco, ${o.items.jam || 0} Confituur</div>
+                        </div>
+                        <div class="flex space-x-2 opacity-0 group-hover/order:opacity-100 transition-opacity">
+                            <button onclick="editOrder('${o.department}', '${o.date}')" class="p-2 rounded-lg text-gray-400 hover:text-amber-400 transition-colors"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deleteOrder('${o.department}', '${o.date}')" class="p-2 rounded-lg text-gray-400 hover:text-rose-400 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+
+                content = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in zoom-in duration-300">
+                    <div id="webshop-order-container" class="lg:col-span-2 bg-[#181b25] p-6 rounded-2xl border border-gray-800/50 shadow-xl">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                            <h3 class="text-xl font-bold text-white mb-3 sm:mb-0">Bestelling Plaatsen</h3>
+                            <input type="date" value="${webshopDate}" onchange="webshopDate=this.value; renderWebshop('order')" class="bg-[#1f2330] text-white border border-gray-700 rounded-xl p-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                        </div>
+                        <form id="webshop-order-form" onsubmit="saveOrder(event)" class="space-y-6">
+                            <select id="order-dept" required class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3 text-sm focus:border-indigo-500/50"><option value="">Kies Afdeling...</option>${AFDELINGEN_CONFIG.map(a => `<option value="${a.naam}">${a.naam}</option>`).join('')}</select>
+                            <input type="email" id="order-email" required placeholder="Jouw E-mail (voor bevestiging)" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3 text-sm focus:border-indigo-500/50">
+                            
+                            <h4 class="text-gray-400 font-semibold pt-3 border-t border-gray-700/50">Broodjes (€ ${webshopPrices.whiteBread.toFixed(2)} / € ${webshopPrices.brownBread.toFixed(2)})</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col">
+                                    <label for="order-white" class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Wit Brood (Aantal)</label>
+                                    <input type="number" id="order-white" min="0" value="0" placeholder="0" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3">
+                                </div>
+                                <div class="flex flex-col">
+                                    <label for="order-brown" class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Bruin Brood (Aantal)</label>
+                                    <input type="number" id="order-brown" min="0" value="0" placeholder="0" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3">
+                                </div>
+                            </div>
+                            
+                            <h4 class="text-gray-400 font-semibold pt-3 border-t border-gray-700/50">Toppings (€ ${webshopPrices.choco.toFixed(2)} / € ${webshopPrices.jam.toFixed(2)})</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col">
+                                    <label for="order-choco" class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Choco (Potten)</label>
+                                    <input type="number" id="order-choco" min="0" value="0" placeholder="0" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3">
+                                </div>
+                                <div class="flex flex-col">
+                                    <label for="order-jam" class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Confituur (Jam - Potten)</label>
+                                    <input type="number" id="order-jam" min="0" value="0" placeholder="0" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3">
+                                </div>
+                            </div>
+                            
+                            <textarea id="order-note" placeholder="Opmerking (optioneel)" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3"></textarea>
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95">Bestelling Opslaan</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4 flex items-center"><i data-lucide="list-ordered" class="w-5 h-5 mr-2 text-rose-400"></i> Bestellingen op ${new Date(webshopDate).toLocaleDateString('nl-BE')}</h3>
+                        <div class="max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                            ${existingOrdersHtml || '<p class="text-gray-500 bg-[#181b25] p-4 rounded-xl border border-gray-800">Nog geen bestellingen op deze datum.</p>'}
+                        </div>
+                    </div>
+                </div>`;
+
+            } else if (subTab === 'prep') {
+                const summary = webshopOrders.reduce((acc, order) => {
+                    acc.whiteBread += order.items.whiteBread || 0;
+                    acc.brownBread += order.items.brownBread || 0;
+                    acc.choco += order.items.choco || 0;
+                    acc.jam += order.items.jam || 0;
+                    return acc;
+                }, { whiteBread: 0, brownBread: 0, choco: 0, jam: 0 });
+
+                const summaryHtml = `
+                    ${renderPrepItem('whiteBread', 'Wit Broodjes', summary.whiteBread, webshopPrices.whiteBread)}
+                    ${renderPrepItem('brownBread', 'Bruin Broodjes', summary.brownBread, webshopPrices.brownBread)}
+                    ${renderPrepItem('choco', 'Choco Potten', summary.choco, webshopPrices.choco)}
+                    ${renderPrepItem('jam', 'Confituur Potten', summary.jam, webshopPrices.jam)}
+                `;
+
+                content = `
+                    <div class="max-w-4xl mx-auto animate-in fade-in zoom-in duration-300">
+                        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                            <h2 class="text-2xl font-bold text-white flex items-center"><i data-lucide="list-checks" class="w-6 h-6 mr-3 text-indigo-400"></i> Klaarzetten Bestellingen</h2>
+                            <input type="date" value="${webshopDate}" onchange="webshopDate=this.value; renderWebshop('prep')" class="bg-[#1f2330] text-white border border-gray-700 rounded-xl p-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                        </div>
+
+                        <div class="bg-[#181b25] p-6 rounded-2xl border border-gray-800/50 shadow-xl mb-8">
+                            <h3 class="text-xl font-bold text-indigo-400 mb-4">Aankoopsamenvatting op ${new Date(webshopDate).toLocaleDateString('nl-BE')}</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${summaryHtml}
+                            </div>
+                        </div>
+
+                        <div class="bg-[#181b25] p-6 rounded-2xl border border-gray-800/50 shadow-xl">
+                            <h3 class="text-xl font-bold text-white mb-4">Bestellingen per Afdeling</h3>
+                            <div class="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                                ${webshopOrders.map(o => `
+                                    <div class="bg-[#1f2330] p-4 rounded-xl border border-gray-700 flex justify-between items-center">
+                                        <div class="text-lg font-bold text-rose-400">${o.department}</div>
+                                        <div class="text-sm text-gray-300">${o.items.whiteBread || 0} Wit, ${o.items.brownBread || 0} Bruin, ${o.items.choco || 0} Choco, ${o.items.jam || 0} Confituur</div>
+                                    </div>
+                                `).join('') || '<p class="text-gray-500 text-center py-4">Geen bestellingen gevonden.</p>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (subTab === 'stock') {
+                content = `
+                    <div class="max-w-lg mx-auto bg-[#181b25] p-8 rounded-3xl border border-gray-800 shadow-xl animate-in fade-in zoom-in duration-300">
+                        <h2 class="text-2xl font-bold text-white mb-8 flex items-center justify-center"><i data-lucide="boxes" class="mr-3 text-indigo-400"></i> Voorraad & Prijzen Beheer</h2>
+                        
+                        <form onsubmit="saveStockAndPrices(event)" class="space-y-6">
+                            <h3 class="text-lg font-bold text-gray-300 border-b border-gray-700 pb-3 mb-4">Huidige Prijzen (€)</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                ${renderPriceInput('price-white', 'Wit Brood', webshopPrices.whiteBread)}
+                                ${renderPriceInput('price-brown', 'Bruin Brood', webshopPrices.brownBread)}
+                                ${renderPriceInput('price-choco', 'Pot Choco', webshopPrices.choco)}
+                                ${renderPriceInput('price-jam', 'Pot Confituur (Jam)', webshopPrices.jam)}
+                            </div>
+
+                            <h3 class="text-lg font-bold text-gray-300 border-b border-gray-700 pb-3 mb-4 pt-6">Voorraad (Aantal Potten)</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                ${renderStockInput('stock-choco', 'Potten Choco', webshopStock.choco)}
+                                ${renderStockInput('stock-jam', 'Potten Confituur (Jam)', webshopStock.jam)}
+                            </div>
+
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg active:scale-95">
+                                Wijzigingen Opslaan
+                            </button>
+                        </form>
+                    </div>
+                `;
+            } else if (subTab === 'costs') {
+                webshopCostMonth = webshopCostMonth || new Date().toISOString().slice(0, 7);
+                const results = await calculateMonthlyCosts(webshopCostMonth);
+                
+                const tableRows = AFDELINGEN_CONFIG.map(afd => {
+                    const data = results.totals[afd.naam] || { whiteBread: 0, brownBread: 0, choco: 0, jam: 0, totalCost: 0 };
+                    return `
+                        <tr class="hover:bg-[#1f2330]/50 transition-colors">
+                            <td class="px-6 py-4 text-white font-bold">${afd.naam}</td>
+                            <td class="px-6 py-4 text-gray-400">${data.whiteBread}</td>
+                            <td class="px-6 py-4 text-gray-400">${data.brownBread}</td>
+                            <td class="px-6 py-4 text-gray-400">${data.choco}</td>
+                            <td class="px-6 py-4 text-gray-400">${data.jam}</td>
+                            <td class="px-6 py-4 text-right font-mono text-lg font-extrabold ${data.totalCost > 0 ? 'text-rose-400' : 'text-gray-500'}">${formatCurrency(data.totalCost)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const overallTotal = Object.values(results.costs).reduce((sum, cost) => sum + cost, 0);
+
+                content = `
+                    <div class="animate-in fade-in zoom-in duration-300">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-white flex items-center"><i data-lucide="euro" class="w-6 h-6 mr-3 text-indigo-400"></i> Maandelijkse Kosten (Webshop)</h2>
+                            <div class="flex items-center gap-4">
+                                <input type="month" id="cost-month-select" value="${webshopCostMonth}" onchange="webshopCostMonth=this.value; renderWebshop('costs')" class="bg-[#1f2330] text-white border border-gray-700 rounded-xl p-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                                <button onclick="exportMonthlyCosts('${webshopCostMonth}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center shadow-lg active:scale-95">
+                                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#181b25] p-6 rounded-2xl border border-gray-800/50 shadow-xl mb-6 flex justify-between items-center">
+                            <span class="text-lg font-bold text-gray-300 uppercase tracking-wider">Totaal voor ${new Date(webshopCostMonth + '-01').toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })}</span>
+                            <span class="text-3xl font-extrabold ${overallTotal > 0 ? 'text-rose-400' : 'text-gray-500'}">${formatCurrency(overallTotal)}</span>
+                        </div>
+
+                        <div class="bg-[#181b25] rounded-2xl overflow-hidden shadow-xl">
+                                <table class="w-full text-left text-sm text-gray-400">
+                                    <thead class="bg-[#1f2330] text-xs uppercase font-bold text-gray-300">
+                                        <tr>
+                                            <th class="px-6 py-4">Afdeling</th>
+                                            <th class="px-6 py-4">Wit Brood</th>
+                                            <th class="px-6 py-4">Bruin Brood</th>
+                                            <th class="px-6 py-4">Choco</th>
+                                            <th class="px-6 py-4">Jam</th>
+                                            <th class="px-6 py-4 text-right">Totaal Kost</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${tableRows}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="bg-[#1f2330] font-bold">
+                                            <td colspan="5" class="px-6 py-4 text-white text-right">GROOT TOTAAL</td>
+                                            <td class="px-6 py-4 text-right font-mono text-xl ${overallTotal > 0 ? 'text-rose-400' : 'text-gray-500'}">${formatCurrency(overallTotal)}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = nav + content;
+            lucide.createIcons();
+        }
+
+        // --- FINANCES RENDERER ---
+        async function renderFinances(subTab = 'weekly') {
+            if (!USER_ROLES[currentUser.role].canViewFinances) {
+                document.getElementById('view-financien').innerHTML = '<div class="text-center text-rose-500 mt-20 font-bold">Geen toegang.</div>';
+                return;
+            }
+            financesActiveTab = subTab;
+            const container = document.getElementById('view-financien');
+            
+            // Nav
+            const nav = `
+            <div class="flex flex-wrap gap-3 mb-6 bg-[#181b25] p-1.5 rounded-2xl border border-gray-800 w-fit">
+                <button onclick="renderFinances('weekly')" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'weekly' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="calendar-check" class="mr-2 inline w-4 h-4"></i> Zondag</button>
+                <button onclick="renderFinances('actions')" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'actions' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="arrow-left-right" class="mr-2 inline w-4 h-4"></i> Acties</button>
+                <button onclick="renderFinances('log')" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'log' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="history" class="mr-2 inline w-4 h-4"></i> Logboek</button>
+            </div>`;
+
+            let content = '';
+
+            if (subTab === 'weekly') {
+                const nextSunday = getNextSunday();
+                content = `
+                    <div class="space-y-6 animate-in fade-in zoom-in duration-300">
+                        <div class="bg-[#181b25] p-8 rounded-3xl border border-gray-800 shadow-2xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            
+                            <div class="flex items-center gap-6 mb-8 pb-8 border-b border-gray-800">
+                                <div class="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl border border-emerald-500/30 text-emerald-400 shadow-lg shadow-emerald-500/10">
+                                    <i data-lucide="calendar-check" class="w-8 h-8"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-2xl font-bold text-white mb-1">Zondag Afrekening</h3>
+                                    <div class="flex items-center gap-3">
+                                        <input id="fin-date" type="date" value="${nextSunday}" class="bg-[#0f111a] text-gray-300 font-medium border border-gray-700 rounded-lg px-3 py-1.5 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center"><i data-lucide="arrow-down-left" class="w-4 h-4 mr-2 text-emerald-400"></i> Inkomsten (Kas)</h4>
+                                    <div class="space-y-3">
+                                        ${AFDELINGEN_CONFIG.map(afd => `
+                                            <div class="group flex items-center bg-[#1f2330] border border-gray-700/50 rounded-xl p-1 pr-4 focus-within:border-emerald-500/50 transition-colors">
+                                                <div class="w-1.5 h-8 ${afd.bg} rounded-full mr-3 ml-1"></div>
+                                                <span class="font-bold text-gray-300 w-24 text-sm truncate">${afd.naam}</span>
+                                                <div class="flex-1 flex gap-2">
+                                                    <div class="relative w-28">
+                                                        <span class="absolute left-3 top-2.5 text-gray-500 text-sm">€</span>
+                                                        <input type="number" step="0.01" id="fin-inc-${afd.naam.replace(/\s/g, '')}" placeholder="0.00" class="w-full bg-transparent border-none py-2 pl-7 pr-2 text-white font-bold focus:ring-0 placeholder-gray-600">
+                                                    </div>
+                                                    <input type="text" id="fin-rem-${afd.naam.replace(/\s/g, '')}" placeholder="Opmerking..." class="flex-1 bg-transparent border-l border-gray-700 py-2 px-3 text-sm text-gray-400 focus:text-white focus:ring-0 placeholder-gray-600 outline-none">
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center"><i data-lucide="arrow-up-right" class="w-4 h-4 mr-2 text-rose-400"></i> Uitgaven (Kosten)</h4>
+                                    <div class="bg-[#1f2330] p-6 rounded-2xl border border-gray-700/50 flex-1">
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Beschrijving</label>
+                                                <input type="text" id="fin-cost-desc" placeholder="bv. Vieruurtje, Materiaal..." class="w-full bg-[#0f111a] border border-gray-600 rounded-xl p-3.5 text-white focus:border-rose-500 outline-none transition-colors">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Bedrag</label>
+                                                <div class="relative">
+                                                    <span class="absolute left-4 top-3.5 text-gray-500 font-bold">€</span>
+                                                    <input type="number" step="0.01" id="fin-cost-amount" placeholder="0.00" class="w-full bg-[#0f111a] border border-gray-600 rounded-xl p-3.5 pl-9 text-white focus:border-rose-500 outline-none transition-colors font-bold text-lg">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-xs italic flex items-start">
+                                            <i data-lucide="info" class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5"></i>
+                                            Laat deze velden leeg als er geen extra kosten waren deze zondag.
+                                        </div>
+                                    </div>
+                                    <button onclick="saveWeeklyFinances()" class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25 active:scale-95 flex justify-center items-center group">
+                                        <span class="mr-2">Afrekening Opslaan</span> <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            } else if (subTab === 'actions') {
+                content = `
+                    <div class="max-w-lg mx-auto bg-[#181b25] p-8 rounded-3xl border border-gray-800 shadow-xl animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+                        <h3 class="text-2xl font-bold text-white mb-8 flex items-center justify-center"><i data-lucide="arrow-left-right" class="mr-3 text-indigo-400"></i> Nieuwe Transactie</h3>
+                        
+                        <form onsubmit="addTransaction(event)" class="space-y-6">
+                            <div class="grid grid-cols-2 gap-4 p-1.5 bg-[#0f111a] rounded-2xl border border-gray-700">
+                                <button type="button" id="btn-income" onclick="document.getElementById('trans-type').value='income'; this.classList.add('bg-emerald-600','text-white','shadow-lg'); this.nextElementSibling.classList.remove('bg-rose-600','text-white','shadow-lg'); this.nextElementSibling.classList.add('text-gray-400','hover:text-white');" class="py-3 rounded-xl text-sm font-bold bg-emerald-600 text-white transition-all shadow-lg flex items-center justify-center"><i data-lucide="plus" class="w-4 h-4 mr-2"></i> Inkomst</button>
+                                <button type="button" id="btn-expense" onclick="document.getElementById('trans-type').value='expense'; this.classList.add('bg-rose-600','text-white','shadow-lg'); this.previousElementSibling.classList.remove('bg-emerald-600','text-white','shadow-lg'); this.previousElementSibling.classList.add('text-gray-400','hover:text-white');" class="py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all flex items-center justify-center"><i data-lucide="minus" class="w-4 h-4 mr-2"></i> Uitgave</button>
+                            </div>
+                            <input type="hidden" id="trans-type" value="income">
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Afdeling</label>
+                                    <select id="trans-dept" required class="w-full bg-[#0f111a] border border-gray-700 rounded-xl p-4 text-white focus:border-indigo-500 outline-none transition-colors appearance-none">
+                                        <option value="">Selecteer Afdeling...</option>
+                                        ${AFDELINGEN_CONFIG.map(a => `<option value="${a.naam}">${a.naam}</option>`).join('')}
+                                        <option value="Hoofdkas">Algemeen / Hoofdkas</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Omschrijving</label>
+                                    <input type="text" id="trans-desc" required placeholder="bv. Kampgeld Jef" class="w-full bg-[#0f111a] border border-gray-700 rounded-xl p-4 text-white focus:border-indigo-500 outline-none transition-colors">
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Bedrag</label>
+                                        <div class="relative">
+                                            <span class="absolute left-4 top-4 text-gray-500 font-bold">€</span>
+                                            <input type="number" step="0.01" id="trans-amount" required placeholder="0.00" class="w-full bg-[#0f111a] border border-gray-700 rounded-xl p-4 pl-9 text-white focus:border-indigo-500 outline-none transition-colors font-bold">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1.5 block">Categorie</label>
+                                        <select id="trans-cat" class="w-full bg-[#0f111a] border border-gray-700 rounded-xl p-4 text-white focus:border-indigo-500 outline-none transition-colors appearance-none">
+                                            <option>4uurtje</option><option>Kasactie</option><option>Kamp</option><option>Lidgeld</option><option>Materiaal</option><option>Andere</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex justify-center items-center mt-6">
+                                Transactie Toevoegen
+                            </button>
+                        </form>
+                    </div>`;
+            } else if (subTab === 'log') {
+                const { data: finances } = await supabase.from(COLLECTION_NAMES.FINANCES).select('*').order('created_at', { ascending: false });
+                
+                // CALCULATE VIRTUAL WALLETS
+                const wallets = {};
+                AFDELINGEN_CONFIG.forEach(a => wallets[a.naam] = 0);
+                wallets['Hoofdkas'] = 0;
+
+                if (finances) {
+                    finances.forEach(t => {
+                        const amt = t.type === 'income' ? t.amount : -t.amount;
+                        if (t.afdeling && wallets[t.afdeling] !== undefined) {
+                            wallets[t.afdeling] += amt;
+                        } else {
+                            wallets['Hoofdkas'] += amt;
+                        }
+                    });
+                }
+
+                const walletCards = AFDELINGEN_CONFIG.map(a => {
+                    const bal = wallets[a.naam];
+                    return `
+                        <div class="bg-[#1f2330] p-4 rounded-2xl border border-gray-700/50 flex flex-col items-center justify-center text-center">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 truncate">${a.naam}</span>
+                            <span class="font-mono font-bold text-lg ${bal >= 0 ? 'text-emerald-400' : 'text-rose-400'}">€ ${bal.toFixed(2)}</span>
+                        </div>`;
+                }).join('');
+
+                content = `
+                    <div class="space-y-8 animate-in fade-in zoom-in duration-300">
+                        
+                        <div class="bg-[#181b25] p-6 rounded-3xl border border-gray-800 shadow-xl">
+                            <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+                                <h3 class="text-lg font-bold text-white flex items-center"><i data-lucide="wallet" class="w-5 h-5 mr-3 text-indigo-400"></i> Virtuele Kassen</h3>
+                                <div class="bg-[#2a3040] px-4 py-2 rounded-xl border border-gray-600 flex items-center shadow-lg">
+                                    <span class="text-xs font-bold text-gray-300 uppercase mr-3">Hoofdkas</span>
+                                    <span class="font-mono font-bold text-lg ${wallets['Hoofdkas'] >= 0 ? 'text-emerald-300' : 'text-rose-300'}">€ ${wallets['Hoofdkas'].toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                ${walletCards}
+                            </div>
+                        </div>
+
+                        <div class="bg-[#181b25] border border-gray-800 rounded-3xl overflow-hidden shadow-xl">
+                            <div class="overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
+                                <table class="w-full text-left text-sm text-gray-400">
+                                    <thead class="bg-[#1f2330] text-xs uppercase font-bold text-gray-300 sticky top-0 z-10 shadow-md">
+                                        <tr>
+                                            <th class="px-6 py-4">Datum</th>
+                                            <th class="px-6 py-4">Afdeling</th>
+                                            <th class="px-6 py-4">Omschrijving</th>
+                                            <th class="px-6 py-4 text-right">Bedrag</th>
+                                            <th class="px-6 py-4 w-10"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-800/50">
+                                        ${finances ? finances.map(t => `
+                                            <tr class="hover:bg-[#1f2330]/50 transition-colors group">
+                                                <td class="px-6 py-4 text-gray-300 font-medium whitespace-nowrap">${new Date(t.created_at).toLocaleDateString('nl-BE')}</td>
+                                                <td class="px-6 py-4"><span class="bg-indigo-500/10 text-indigo-300 px-2 py-1 rounded text-xs border border-indigo-500/20 font-bold">${t.afdeling || 'Algemeen'}</span></td>
+                                                <td class="px-6 py-4 text-white font-medium">
+                                                    ${t.description}
+                                                    <div class="text-[10px] text-gray-500 font-normal mt-0.5 flex items-center">
+                                                        <span class="bg-gray-800 px-1.5 rounded mr-2 text-gray-400">${t.category}</span>
+                                                        door ${t.user || 'Onbekend'}
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 text-right font-mono font-bold text-base ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}">
+                                                    ${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}
+                                                </td>
+                                                <td class="px-6 py-4 text-right"><button onclick="deleteTransaction('${t.id}')" class="text-gray-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                                            </tr>
+                                        `).join('') : '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500 italic">Nog geen transacties gevonden.</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            container.innerHTML = nav + content;
+            lucide.createIcons();
+        }
+
+        // --- ADMIN RENDERER ---
+        async function renderAdmin() {
+            const container = document.getElementById('view-admin');
+            if (!USER_ROLES[currentUser.role].canDoAdmin) {
+                container.innerHTML = '<div class="text-center text-rose-500 mt-20 font-bold">Geen toegang.</div>';
+                return;
+            }
+
+            adminUsers = await fetchAdminUsers();
+            const availableRoles = Object.keys(USER_ROLES);
+
+            const userListHtml = adminUsers.map(user => {
+                const currentRole = USER_ROLES[user.role] || USER_ROLES.LEIDING;
+                const isCurrentUser = user.id === currentUser.id;
+                const canEdit = !isCurrentUser; // Prevent self-editing of role
+                const userBgClass = currentRole.color.split(' ')[0];
+                const userTextClass = currentRole.color.split(' ')[1];
+
+                const roleSelector = canEdit ? `
+                    <select onchange="updateUserRole('${user.id}', this.value)" class="bg-[#1f2330] border border-gray-700 rounded-xl p-2 text-sm text-white focus:ring-indigo-500 focus:border-indigo-500 outline-none w-full">
+                        ${availableRoles.map(roleKey => `<option value="${roleKey}" ${user.role === roleKey ? 'selected' : ''}>${USER_ROLES[roleKey].label}</option>`).join('')}
+                    </select>
+                ` : `<span class="text-gray-500 italic text-sm font-bold w-full p-2.5 bg-[#1f2330] rounded-xl text-center">${currentRole.label} (Jij)</span>`;
+
+                return `
+                    <div class="bg-[#1f2330] p-4 rounded-xl border border-gray-700/50 flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0 shadow-md ${isCurrentUser ? 'border-indigo-500/50 ring-1 ring-indigo-500/50' : ''}">
+                        <div class="flex items-center w-full md:w-auto">
+                            <div class="w-10 h-10 rounded-full ${userBgClass} ${userTextClass} flex items-center justify-center font-bold text-lg mr-3 shadow-inner">
+                                ${(user.name || user.email.charAt(0)).charAt(0).toUpperCase()}
+                            </div>
+                            <div class="truncate">
+                                <p class="text-sm font-bold text-white truncate">${user.name || 'Naam Onbekend'}</p>
+                                <p class="text-xs text-gray-500 truncate">${user.email}</p>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-56 flex-shrink-0 flex items-center gap-3">
+                            ${roleSelector}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const html = `
+                <div class="animate-in fade-in zoom-in duration-300">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="key" class="mr-3 text-rose-400"></i> Admin Console</h2>
+                    
+                    <div class="bg-[#181b25] p-6 rounded-3xl border border-gray-800 shadow-xl mb-8">
+                        <h3 class="text-xl font-bold text-white mb-4">Gebruikers & Rollen</h3>
+                        <div class="space-y-4">
+                            ${userListHtml.length > 0 ? userListHtml : '<p class="text-gray-500 text-center py-4">Geen gebruikers gevonden om te beheren.</p>'}
+                        </div>
+                    </div>
+
+                    <div class="bg-[#181b25] p-6 rounded-3xl border border-gray-800 shadow-xl">
+                        <h3 class="text-xl font-bold text-white mb-4">Systeem Instellingen</h3>
+                        <p class="text-gray-400">Plaats voor geavanceerde instellingen (Nog niet geïmplementeerd).</p>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+
+        // =========================================================================
+        // --- AUTH & NAVIGATION (Must call defined render functions) ---
+        // =========================================================================
+
+        // --- AUTHENTICATION ---
+        async function checkSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                handleSessionSuccess(session.user);
+            } else {
+                showAuthView();
+            }
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btnText = document.getElementById('login-btn-text');
+            const loader = document.getElementById('login-loader');
+
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                await handleSessionSuccess(data.user);
+            } catch (err) {
+                showToast(err.message || 'Login mislukt', 'error');
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        });
+
+        async function handleSessionSuccess(user) {
+            currentAuthUser = user;
+            const { data, error } = await supabase
+                .from(COLLECTION_NAMES.PORTAL_USERS)
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (data) {
+                currentUser = { ...data, id: user.id, email: user.email };
+                showAppLayout();
+            } else {
+                await supabase.auth.signOut();
+                showToast("Geen rol gevonden voor deze gebruiker.", "error");
+                showAuthView();
+            }
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            currentAuthUser = null;
+            showAuthView();
+            showToast("Succesvol afgemeld", "info");
+        }
+
+        // --- UI NAVIGATION ---
+        function showAuthView() {
+            document.getElementById('auth-view').classList.remove('hidden-view');
+            document.getElementById('app-layout').classList.add('hidden-view');
+        }
+
+        function showAppLayout() {
+            document.getElementById('auth-view').classList.add('hidden-view');
+            document.getElementById('app-layout').classList.remove('hidden-view');
+            
+            document.getElementById('user-name-display').innerText = currentUser.name || currentUser.email.split('@')[0];
+            document.getElementById('user-role-display').innerText = USER_ROLES[currentUser.role]?.label || currentUser.role;
+            document.getElementById('user-avatar').innerText = (currentUser.name || 'U').charAt(0).toUpperCase();
+            document.getElementById('header-role-badge').innerText = `Rol: ${USER_ROLES[currentUser.role]?.label}`;
+
+            renderSidebar();
+            switchTab('dashboard');
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('sidebar-nav');
+            const role = USER_ROLES[currentUser.role];
+            
+            const menuItems = [
+                { id: 'dashboard', icon: 'layout-grid', label: 'Dashboard', access: true },
+                // Ledenbeheer is verwijderd
+                { id: 'telling', icon: 'clipboard-list', label: role.canDoAttendance ? 'Aanwezigheden' : 'Overzicht', access: true },
+                { id: 'statistieken', icon: 'bar-chart-3', label: 'Statistieken', access: true },
+                { id: 'webshop', icon: 'shopping-bag', label: 'Webshop', access: true },
+                { id: 'financien', icon: 'wallet', label: 'Financiën', access: role.canViewFinances, restricted: true },
+                { id: 'admin', icon: 'key', label: 'Admin', access: role.canDoAdmin, restricted: true },
+                { id: 'profiel', icon: 'user', label: 'Mijn Profiel', access: true, spacer: true },
+                { id: 'logout', icon: 'log-out', label: 'Afmelden', access: true, action: handleLogout, color: 'text-rose-400' }
+            ];
+
+            let html = '';
+            let spacerAdded = false;
+
+            menuItems.forEach(item => {
+                // Hides Admin from sidebar, but keeps it accessible via the Profile tab
+                if (item.id === 'admin') return;
+
+                if (item.spacer && !spacerAdded) {
+                    html += `<div class="pt-8 pb-3 px-2 text-xs font-bold text-gray-600 uppercase tracking-widest">Instellingen</div>`;
+                    spacerAdded = true;
+                }
+
+                if (!item.access && !item.restricted) return;
+
+                const isActive = activeTab === item.id;
+                const baseClass = `w-full flex items-center px-4 py-3 mb-1 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden`;
+                const activeClass = `bg-indigo-500/10 text-indigo-400 shadow-[inset_3px_0_0_0_#6366f1]`;
+                const inactiveClass = `hover:bg-[#1f2330] text-gray-400 hover:text-gray-200 ${item.color || ''}`;
+                const lockedClass = `opacity-50 cursor-not-allowed hover:bg-transparent`;
+
+                let classes = `${baseClass} ${isActive ? activeClass : inactiveClass}`;
+                if (item.restricted && !item.access) classes = `${baseClass} ${lockedClass}`;
+
+                const onclick = item.action ? `onclick="handleLogout()"` : (item.restricted && !item.access ? '' : `onclick="switchTab('${item.id}')"`);
+                const iconColor = isActive ? 'text-indigo-400' : (item.color ? 'group-hover:text-current' : 'text-gray-500 group-hover:text-gray-300');
+                
+                const lockIcon = item.restricted ? (item.access ? `<i data-lucide="lock-open" class="w-4 h-4 ml-auto text-emerald-500"></i>` : `<i data-lucide="lock" class="w-4 h-4 ml-auto text-rose-500"></i>`) : '';
+
+                // SKIP LEDEN IN SIDEBAR NAV
+                if (item.id === 'leden') return;
+
+                html += `
+                    <button ${onclick} class="${classes}">
+                        <i data-lucide="${item.icon}" class="w-5 h-5 mr-3 transition-transform duration-300 group-hover:scale-110 ${iconColor}"></i>
+                        <span class="transition-all duration-300 ${isActive ? 'font-semibold translate-x-1' : 'group-hover:translate-x-1'}">${item.label}</span>
+                        ${lockIcon}
+                    </button>`;
+            });
+
+            nav.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        async function switchTab(tabId) {
+            activeTab = tabId;
+            renderSidebar();
+            
+            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden-view'));
+            
+            const target = document.getElementById(`view-${tabId}`);
+            if (target) {
+                target.classList.remove('hidden-view');
+                target.innerHTML = '<div class="flex justify-center p-10"><div class="loader"></div></div>';
+                
+                switch(tabId) {
+                    case 'dashboard': await renderDashboard(); break;
+                    case 'leden': await renderMembers(); break; // Renders the disabled message
+                    case 'telling': await renderAttendance(); break;
+                    case 'statistieken': await renderStatistics(); break;
+                    case 'webshop': await renderWebshop('order'); break;
+                    case 'financien': await renderFinances('weekly'); break;
+                    case 'admin': await renderAdmin(); break;
+                    case 'profiel': renderProfile(); break;
+                }
+            }
+            
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100', 'pointer-events-auto');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            if(window.innerWidth >= 1024) {
+                sidebar.classList.remove('-translate-x-full');
+            }
+        }
+
+        function openWebshopTab(subTab) {
+            if(subTab === 'order') {
+                // Reset date to next Sunday when opening the order tab
+                webshopDate = getNextSunday();
+            }
+            switchTab('webshop');
+            setTimeout(() => { // Small delay to let switchTab finish and set up the loader/container
+                renderWebshop(subTab);
+            }, 50);
+        }
+
+        // =========================================================================
+        // --- INITIALIZATION ---
+        // =========================================================================
+        window.onload = function() {
+            webshopDate = getNextSunday();
+            lucide.createIcons();
+            initSupabase();
+            checkSession();
+        };
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        }
+
+        // Sidebar mobile toggles
+        document.getElementById('open-sidebar').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100', 'pointer-events-auto');
+        });
+
+        const closeSidebarMobile = () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100', 'pointer-events-auto');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+        };
+
+        document.getElementById('close-sidebar').addEventListener('click', closeSidebarMobile);
+        document.getElementById('sidebar-overlay').addEventListener('click', closeSidebarMobile);
+
+    </script>
 </body>
-</html>""
+</html>

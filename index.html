@@ -184,6 +184,8 @@
         </div>
     </div>
 
+
+
     <script>
         // --- CONSTANTS & CONFIG ---
         // LET OP: U MOET DEZE VELDEN AANPASSEN MET UW ECHTE SUPABASE DETAILS
@@ -222,6 +224,59 @@
             { naam: "Tiptiens", kleur: "blue", border: "border-blue-500", bg: "bg-blue-500", text: "text-blue-400", btn: "bg-blue-600 hover:bg-blue-500" },
             { naam: "Aspis", kleur: "orange", border: "border-orange-500", bg: "bg-orange-500", text: "text-orange-400", btn: "bg-orange-600 hover:bg-orange-500" },
         ];
+
+        
+        window.addEventListener('beforeunload', (event) => {
+    // Roept de handleLogout() functie op wanneer de gebruiker de pagina probeert te sluiten of te verversen.
+    // LET OP: DEZE FUNCTIE WERKT NIET ALTIJD VANWEGE BROWSERBEPERKINGEN (zie waarschuwing hierboven).
+    
+    // Zorg ervoor dat de gebruiker wel is ingelogd
+    if (currentUser) {
+        // De handleLogout is een async functie, maar de browser wacht hier niet op.
+        handleLogout();
+    }
+});
+        // =========================================================================
+        // --- INACTIVITY TIMEOUT (10 MINUTES) ---
+        // =========================================================================
+        let timeoutInSeconds = 600; // 10 minuten
+        let timeoutHandle;
+
+        /**
+         * Reset de timer bij elke gebruikersinteractie.
+         */
+        function resetInactivityTimer() {
+            clearTimeout(timeoutHandle);
+            if (currentUser) { // Alleen starten als er een gebruiker ingelogd is
+                timeoutHandle = setTimeout(handleInactivityTimeout, timeoutInSeconds * 1000);
+            }
+        }
+
+        /**
+         * Wordt uitgevoerd wanneer de inactiviteitstijd is bereikt.
+         */
+        async function handleInactivityTimeout() {
+            if (currentUser) {
+                showToast("Automatisch afgemeld wegens 10 minuten inactiviteit.", "info");
+                await handleLogout();
+            }
+        }
+
+        /**
+         * Activeert de event listeners
+         */
+        function setupInactivityDetection() {
+            window.addEventListener('mousemove', resetInactivityTimer);
+            window.addEventListener('keypress', resetInactivityTimer);
+            window.addEventListener('scroll', resetInactivityTimer);
+            // Start de timer direct na het inloggen
+            if (currentUser) {
+                resetInactivityTimer();
+            }
+        }
+
+        // Omdat setupInactivityDetection de currentUser nodig heeft, roepen we deze aan na een succesvolle login
+        // We passen de functie showAppLayout aan om dit te doen.
 
         // --- GLOBAL STATE ---
         let supabase;
@@ -1908,7 +1963,7 @@
             document.getElementById('app-layout').classList.add('hidden-view');
         }
 
-        function showAppLayout() {
+       function showAppLayout() {
             document.getElementById('auth-view').classList.add('hidden-view');
             document.getElementById('app-layout').classList.remove('hidden-view');
             
@@ -1919,8 +1974,10 @@
 
             renderSidebar();
             switchTab('dashboard');
-        }
-
+            
+            // NIEUWE REGEL: Start de inactiviteitstimer hier!
+            setupInactivityDetection();
+}
         function renderSidebar() {
             const nav = document.getElementById('sidebar-nav');
             const role = USER_ROLES[currentUser.role];

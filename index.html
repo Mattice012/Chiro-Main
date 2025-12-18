@@ -279,7 +279,7 @@
         // We passen de functie showAppLayout aan om dit te doen.
 
         // --- GLOBAL STATE ---
-        let supabase;
+        let supabaseClient;
         let currentUser = null; 
         let currentAuthUser = null; 
         let activeTab = 'dashboard';
@@ -432,7 +432,7 @@
 
         // ATTENDANCE HELPERS
         async function loadAttendanceDate(date) {
-            const { data, error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').eq('datum', date).single();
+            const { data, error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').eq('datum', date).single();
             AFDELINGEN_CONFIG.forEach(a => { counts[a.naam] = 0; notes[a.naam] = ""; });
             const generalNoteEl = document.getElementById('general-note');
             if(generalNoteEl) generalNoteEl.value = "";
@@ -477,7 +477,7 @@
                 if(el) notes[a.naam] = el.value;
             });
             const afdelingenData = AFDELINGEN_CONFIG.map(afd => ({ naam: afd.naam, aantal: counts[afd.naam], opmerking: notes[afd.naam] }));
-            const { error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).upsert({
+            const { error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).upsert({
                 datum: date,
                 timestamp: new Date().toISOString(),
                 algemeneMededeling: generalNote,
@@ -490,7 +490,7 @@
 
         async function deleteAttendance(date) {
             if(confirm("Weet je zeker dat je deze telling permanent wilt verwijderen?")) {
-                const { error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).delete().eq('datum', date);
+                const { error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).delete().eq('datum', date);
                 if (error) showToast("Fout bij verwijderen", "error");
                 else { showToast("Telling verwijderd", "success"); renderAttendance('overview'); }
             }
@@ -498,15 +498,15 @@
         
         // WEBSHOP HELPERS
         async function fetchWebshopData(date) {
-            const { data: ordersData } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS).select('*').eq('date', date);
+            const { data: ordersData } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS).select('*').eq('date', date);
             webshopOrders = ordersData || [];
             
             // Fetch Stock (ID 1 is the single stock record)
-            const { data: stockData } = await supabase.from(COLLECTION_NAMES.BROOD_STOCK_DOC).select('choco, jam').eq('id', 1).single();
+            const { data: stockData } = await supabaseClient.from(COLLECTION_NAMES.BROOD_STOCK_DOC).select('choco, jam').eq('id', 1).single();
             if (stockData) webshopStock = { choco: stockData.choco || 0, jam: stockData.jam || 0 };
             
             // Fetch Prices (ID 1 is the single price record)
-            const { data: pricesData } = await supabase.from(COLLECTION_NAMES.BROOD_PRICES_DOC).select('whiteBread, brownBread, choco, jam').eq('id', 1).single();
+            const { data: pricesData } = await supabaseClient.from(COLLECTION_NAMES.BROOD_PRICES_DOC).select('whiteBread, brownBread, choco, jam').eq('id', 1).single();
             // Merge with defaults to ensure all keys exist
             if (pricesData) webshopPrices = { ...webshopPrices, ...pricesData };
         }
@@ -525,7 +525,7 @@
             const transType = type || (amount >= 0 ? 'income' : 'expense'); // Income is de default, maar bij negatieve bedragen forceren we expense
             const absAmount = Math.abs(amount);
 
-            const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).insert({
+            const { error } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).insert({
                 description: description,
                 amount: absAmount,
                 type: transType,
@@ -593,7 +593,7 @@
 
                     // Only proceed if there is a net change in toppings
                     if (chocoDiff !== 0 || jamDiff !== 0) {
-                        const { data: currentStock, error: stockFetchError } = await supabase
+                        const { data: currentStock, error: stockFetchError } = await supabaseClient
                             .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
                             .select('choco, jam')
                             .eq('id', 1)
@@ -609,7 +609,7 @@
                             return; // Stop execution
                         }
                         
-                        const { error: stockUpdateError } = await supabase
+                        const { error: stockUpdateError } = await supabaseClient
                             .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
                             .update({ choco: newChoco, jam: newJam })
                             .eq('id', 1);
@@ -620,7 +620,7 @@
                 }
 
                 // 2. Place/Update Order (Upsert)
-                const { error: orderError } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS).upsert(orderData);
+                const { error: orderError } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS).upsert(orderData);
                 if(orderError) throw orderError;
                 
                 // 3. Log Financial Change (Net change only)
@@ -679,7 +679,7 @@
                 const jamRevert = orderToDelete.items.jam || 0;
 
                 if (chocoRevert > 0 || jamRevert > 0) {
-                    const { data: currentStock } = await supabase
+                    const { data: currentStock } = await supabaseClient
                             .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
                             .select('choco, jam')
                             .eq('id', 1)
@@ -688,14 +688,14 @@
                     const newChoco = (currentStock.choco || 0) + chocoRevert;
                     const newJam = (currentStock.jam || 0) + jamRevert;
                     
-                    await supabase
+                    await supabaseClient
                         .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
                         .update({ choco: newChoco, jam: newJam })
                         .eq('id', 1);
                 }
 
                 // 2. Delete Order
-                const { error: deleteError } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS)
+                const { error: deleteError } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS)
                     .delete()
                     .eq('id', `${date}_${dept}`);
 
@@ -734,14 +734,14 @@
 
             try {
                 // Save Stock (always ID 1)
-                await supabase.from(COLLECTION_NAMES.BROOD_STOCK_DOC).upsert({
+                await supabaseClient.from(COLLECTION_NAMES.BROOD_STOCK_DOC).upsert({
                     id: 1,
                     choco: stockChoco,
                     jam: stockJam
                 }, { onConflict: 'id' });
 
                 // Save Prices (always ID 1)
-                await supabase.from(COLLECTION_NAMES.BROOD_PRICES_DOC).upsert({
+                await supabaseClient.from(COLLECTION_NAMES.BROOD_PRICES_DOC).upsert({
                     id: 1,
                     whiteBread: priceWhite,
                     brownBread: priceBrown,
@@ -763,7 +763,7 @@
             const endOfMonth = date.toISOString().split('T')[0];
 
             // 1. Fetch relevant orders
-            const { data: orders } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS)
+            const { data: orders } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS)
                 .select('department, items, date, total_cost')
                 .gte('date', startOfMonth)
                 .lt('date', endOfMonth);
@@ -802,7 +802,7 @@
                 details: totals[a.naam]
             }));
             // Upsert based on month and afdeling (composite key approach)
-            await supabase.from(COLLECTION_NAMES.WEBSHOP_COSTS).upsert(monthlyData, { onConflict: 'month,afdeling' });
+           await supabaseClient.from(COLLECTION_NAMES.WEBSHOP_COSTS).upsert(monthlyData, { onConflict: 'month,afdeling' });
 
             return { totals, costs: Object.fromEntries(Object.entries(totals).map(([dept, data]) => [dept, data.totalCost])), month };
         }
@@ -889,7 +889,7 @@
                 return;
             }
 
-            const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).insert(transactions);
+            const { error } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).insert(transactions);
             if (error) {
                 showToast("Fout bij opslaan: " + error.message, "error");
             } else {
@@ -909,7 +909,7 @@
             if(!dept) { showToast("Kies een afdeling!", "error"); return; }
             if(isNaN(amount) || amount <= 0) { showToast("Voer een geldig bedrag in!", "error"); return; }
 
-            const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).insert({
+            const { error } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).insert({
                 description: desc,
                 amount: amount,
                 type: type,
@@ -925,7 +925,7 @@
 
         async function deleteTransaction(id) {
             if(confirm("Weet je zeker dat je deze transactie permanent wilt verwijderen?")) {
-                const { error } = await supabase.from(COLLECTION_NAMES.FINANCES).delete().eq('id', id);
+                const { error } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).delete().eq('id', id);
                 if (error) showToast("Fout bij verwijderen", "error");
                 else { showToast("Verwijderd", "success"); renderFinances(financesActiveTab); }
             }
@@ -933,7 +933,7 @@
         
         // ADMIN ACTIONS
         async function fetchAdminUsers() {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from(COLLECTION_NAMES.PORTAL_USERS)
                 .select('*');
             if (error) { showToast('Fout bij laden gebruikers: ' + error.message, 'error'); return []; }
@@ -941,7 +941,7 @@
         }
 
         async function updateUserRole(userId, newRole) {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from(COLLECTION_NAMES.PORTAL_USERS)
                 .update({ role: newRole })
                 .eq('id', userId);
@@ -966,9 +966,9 @@
             const nextSundayDate = new Date(nextSunday);
             const formattedSunday = nextSundayDate.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' });
 
-            const { count: orderCount } = await supabase.from(COLLECTION_NAMES.BROOD_ORDERS).select('*', { count: 'exact', head: true }).eq('date', nextSunday);
+            const { count: orderCount } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS).select('*', { count: 'exact', head: true }).eq('date', nextSunday);
             
-            const { data: attendanceData } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('totaalAantal, datum').order('datum', { ascending: false }).limit(2);
+            const { data: attendanceData } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('totaalAantal, datum').order('datum', { ascending: false }).limit(2);
             let attendanceLabel = "Nog geen data";
             let attendanceTrend = "Geen trend";
             let isPos = true;
@@ -1168,7 +1168,7 @@
                 loadAttendanceDate(nextSunday); // Initial fetch
             } else {
                 // Overview Mode with Grouping (Sleeker look)
-                const { data, error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: false });
+                const { data, error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: false });
                 if (error) { showToast("Fout bij laden historiek", "error"); return; }
                 
                 if(!data || data.length === 0) {
@@ -1257,7 +1257,7 @@
         // --- STATISTIEKEN RENDERER ---
         async function renderStatistics() {
             const container = document.getElementById('view-statistieken');
-            const { data: snapshotData, error } = await supabase.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: true });
+            const { data: snapshotData, error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: true });
             if (error || !snapshotData || snapshotData.length === 0) {
                 container.innerHTML = '<div class="text-center text-gray-400 mt-20">Geen statistieken beschikbaar.</div>'; return;
             }
@@ -1747,7 +1747,7 @@
                         </form>
                     </div>`;
             } else if (subTab === 'log') {
-                const { data: finances } = await supabase.from(COLLECTION_NAMES.FINANCES).select('*').order('created_at', { ascending: false });
+                const { data: finances } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).select('*').order('created_at', { ascending: false });
                 
                 // CALCULATE VIRTUAL WALLETS
                 const wallets = {};
@@ -1902,7 +1902,7 @@
 
         // --- AUTHENTICATION ---
         async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 handleSessionSuccess(session.user);
             } else {
@@ -1921,7 +1921,7 @@
             loader.classList.remove('hidden');
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 await handleSessionSuccess(data.user);
             } catch (err) {
@@ -1933,7 +1933,7 @@
 
         async function handleSessionSuccess(user) {
             currentAuthUser = user;
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from(COLLECTION_NAMES.PORTAL_USERS)
                 .select('*')
                 .eq('id', user.id)
@@ -1943,14 +1943,14 @@
                 currentUser = { ...data, id: user.id, email: user.email };
                 showAppLayout();
             } else {
-                await supabase.auth.signOut();
+                    await supabaseClient.auth.signOut();
                 showToast("Geen rol gevonden voor deze gebruiker.", "error");
                 showAuthView();
             }
         }
 
         async function handleLogout() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             currentUser = null;
             currentAuthUser = null;
             showAuthView();
@@ -2093,10 +2093,10 @@
         };
 
         function initSupabase() {
-            if (typeof supabase === 'undefined') {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        }
+    if (typeof window.supabase !== 'undefined') {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+}
 
         // Sidebar mobile toggles
         document.getElementById('open-sidebar').addEventListener('click', () => {

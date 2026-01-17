@@ -1,80 +1,41 @@
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chiro Portaal</title>
     <link rel="icon" type="image/png" href="Chirologo_1200px.png" />
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f111a;
-            color: white;
-            overflow-x: hidden;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #0f111a; color: white; overflow-x: hidden; }
+        
         /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #181b25;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 3px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #181b25; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4b5563; }
 
         /* Animations */
-        @keyframes pulse-slow {
-
-            0%,
-            100% {
-                opacity: 0.2;
-                transform: scale(1) translate(0, 0);
-            }
-
-            50% {
-                opacity: 0.4;
-                transform: scale(1.1) translate(20px, -20px);
-            }
+        @keyframes pulse-slow { 
+            0%, 100% { opacity: 0.2; transform: scale(1) translate(0, 0); } 
+            50% { opacity: 0.4; transform: scale(1.1) translate(20px, -20px); } 
         }
-
-        .animate-pulse-slow {
-            animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
-        }
-
+        .animate-pulse-slow { animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate; }
+        
         /* Utility to hide views */
-        .hidden-view {
-            display: none !important;
-        }
-
+        .hidden-view { display: none !important; }
+        
         /* Details Summary Marker removal */
-        details>summary {
-            list-style: none;
-        }
-
-        details>summary::-webkit-details-marker {
-            display: none;
-        }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
 
         .loader {
             border: 3px solid rgba(99, 102, 241, 0.3);
@@ -82,36 +43,22 @@
             border-top: 3px solid #6366f1;
             width: 20px;
             height: 20px;
-            -webkit-animation: spin 1s linear infinite;
-            /* Safari */
+            -webkit-animation: spin 1s linear infinite; /* Safari */
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
+        
         /* Smooth transitions for view switching */
-        main>div {
+        main > div {
             animation: fadeIn 0.4s ease-out;
         }
-
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Glass Cards */
@@ -122,26 +69,18 @@
         }
     </style>
 </head>
-
 <body class="selection:bg-indigo-500 selection:text-white">
 
-    <div id="toast-container"
-        class="fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-6 sm:right-6 sm:w-auto z-[100] flex flex-col gap-3 pointer-events-none">
-    </div>
+    <div id="toast-container" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-6 sm:right-6 sm:w-auto z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <div id="auth-view" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         <div class="absolute inset-0 bg-[#0f111a] z-0"></div>
-        <div
-            class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow">
-        </div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow"
-            style="animation-delay: 1.5s;"></div>
+        <div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 1.5s;"></div>
 
-        <div
-            class="w-full max-w-md bg-[#181b25]/80 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-2xl relative z-10">
+        <div class="w-full max-w-md bg-[#181b25]/80 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-2xl relative z-10">
             <div class="text-center mb-8">
-                <div
-                    class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/20">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/20">
                     <span class="font-bold text-3xl text-white">C</span>
                 </div>
                 <h1 class="text-2xl font-bold text-white tracking-tight">Chiro Portaal</h1>
@@ -151,25 +90,18 @@
             <form id="login-form" class="space-y-4">
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="mail"
-                            class="h-5 w-5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                        <i data-lucide="mail" class="h-5 w-5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
                     </div>
-                    <input id="email" type="email" required
-                        class="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl leading-5 bg-[#0f111a] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition-all"
-                        placeholder="E-mailadres">
+                    <input id="email" type="email" required class="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl leading-5 bg-[#0f111a] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition-all" placeholder="E-mailadres">
                 </div>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="lock"
-                            class="h-5 w-5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                        <i data-lucide="lock" class="h-5 w-5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
                     </div>
-                    <input id="password" type="password" required
-                        class="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl leading-5 bg-[#0f111a] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition-all"
-                        placeholder="Wachtwoord">
+                    <input id="password" type="password" required class="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl leading-5 bg-[#0f111a] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition-all" placeholder="Wachtwoord">
                 </div>
-
-                <button type="submit" id="login-btn"
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-95 flex items-center justify-center mt-6">
+                
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-95 flex items-center justify-center mt-6">
                     <span id="login-btn-text">Aanmelden</span>
                     <div id="login-loader" class="loader hidden"></div>
                 </button>
@@ -179,40 +111,31 @@
 
     <div id="app-layout" class="hidden-view min-h-screen bg-[#0f111a] text-white overflow-x-hidden relative">
         <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-            <div
-                class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] opacity-30 animate-pulse-slow">
-            </div>
-            <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] opacity-30 animate-pulse-slow"
-                style="animation-delay: 2s;"></div>
+            <div class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] opacity-30 animate-pulse-slow"></div>
+            <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] opacity-30 animate-pulse-slow" style="animation-delay: 2s;"></div>
         </div>
 
-        <div id="sidebar-overlay"
-            class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        </div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
-        <aside id="sidebar"
-            class="fixed top-0 left-0 z-50 h-full w-72 lg:w-64 bg-[#181b25]/95 backdrop-blur-xl border-r border-gray-800/50 transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) -translate-x-full lg:translate-x-0 shadow-2xl">
+        <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 lg:w-64 bg-[#181b25]/95 backdrop-blur-xl border-r border-gray-800/50 transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) -translate-x-full lg:translate-x-0 shadow-2xl">
             <div class="flex flex-col h-full">
                 <div class="h-20 flex items-center px-6 border-b border-gray-800/50 bg-[#181b25]/50">
-                    <div
-                        class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
                         <span class="font-bold text-xl text-white">C</span>
                     </div>
                     <div>
                         <span class="font-bold text-lg tracking-tight block leading-none text-white">CHIRO</span>
                         <span class="text-xs font-semibold text-indigo-400 tracking-widest uppercase">Portaal</span>
                     </div>
-                    <button id="close-sidebar" class="ml-auto lg:hidden text-gray-400 hover:text-white p-1"><i
-                            data-lucide="x"></i></button>
+                    <button id="close-sidebar" class="ml-auto lg:hidden text-gray-400 hover:text-white p-1"><i data-lucide="x"></i></button>
                 </div>
 
                 <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 no-scrollbar" id="sidebar-nav">
-                </nav>
+                    </nav>
 
                 <div class="p-4 m-4 rounded-xl bg-[#13161f] border border-gray-800/50">
                     <div class="flex items-center">
-                        <div id="user-avatar"
-                            class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-sm font-bold ring-2 ring-[#0f111a] shadow-sm text-white">
+                        <div id="user-avatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-sm font-bold ring-2 ring-[#0f111a] shadow-sm text-white">
                             L
                         </div>
                         <div class="ml-3 overflow-hidden">
@@ -228,31 +151,22 @@
         </aside>
 
         <div class="lg:ml-64 min-h-screen flex flex-col transition-all duration-500 relative z-10">
-            <header
-                class="h-20 bg-[#0f111a]/80 backdrop-blur-xl border-b border-gray-800/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
-                <button id="open-sidebar"
-                    class="lg:hidden p-2 -ml-2 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 transition-colors"><i
-                        data-lucide="menu"></i></button>
-
-                <div
-                    class="hidden md:flex items-center bg-[#181b25] rounded-xl px-4 py-2.5 border border-gray-800 w-96 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all shadow-sm group">
-                    <i data-lucide="search"
-                        class="text-gray-500 mr-3 group-focus-within:text-indigo-400 transition-colors h-4 w-4"></i>
-                    <input type="text" placeholder="Zoek..."
-                        class="bg-transparent border-none focus:outline-none text-sm w-full placeholder-gray-600 text-gray-200">
+            <header class="h-20 bg-[#0f111a]/80 backdrop-blur-xl border-b border-gray-800/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
+                <button id="open-sidebar" class="lg:hidden p-2 -ml-2 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 transition-colors"><i data-lucide="menu"></i></button>
+                
+                <div class="hidden md:flex items-center bg-[#181b25] rounded-xl px-4 py-2.5 border border-gray-800 w-96 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all shadow-sm group">
+                    <i data-lucide="search" class="text-gray-500 mr-3 group-focus-within:text-indigo-400 transition-colors h-4 w-4"></i>
+                    <input type="text" placeholder="Zoek..." class="bg-transparent border-none focus:outline-none text-sm w-full placeholder-gray-600 text-gray-200">
                 </div>
 
                 <div class="flex items-center space-x-3 md:space-x-4">
-                    <div
-                        class="hidden md:flex items-center px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                    <div class="hidden md:flex items-center px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
                         <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2 animate-pulse"></span>
                         <span id="header-role-badge" class="text-xs font-medium text-amber-500">Rol: ...</span>
                     </div>
-                    <button
-                        class="p-2.5 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 relative transition-all hover:scale-105 active:scale-95">
+                    <button class="p-2.5 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 relative transition-all hover:scale-105 active:scale-95">
                         <i data-lucide="bell"></i>
-                        <span
-                            class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0f111a] animate-pulse"></span>
+                        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0f111a] animate-pulse"></span>
                     </button>
                 </div>
             </header>
@@ -277,7 +191,7 @@
         // LET OP: U MOET DEZE VELDEN AANPASSEN MET UW ECHTE SUPABASE DETAILS
         const SUPABASE_URL = 'https://bqplzquqmfxqobfkmwua.supabase.co'; // <--- VERVANG DOOR UW URL
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxcGx6cXVxbWZ4cW9iZmttd3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyMDM5NjAsImV4cCI6MjA4MDc3OTk2MH0.638_AjXjp_p4E9kDjWkLbUry5gphb1X9Q6Fglp2ZjOI'; // <--- VERVANG DOOR UW ANON KEY
-
+        
         const COLLECTION_NAMES = {
             PORTAL_USERS: 'portal_users',
             LEDEN: 'leden',
@@ -286,7 +200,7 @@
             BROOD_STOCK_DOC: 'bread_stock',
             BROOD_PRICES_DOC: 'bread_prices',
             AANWEZIGHEDEN: 'aanwezigheden',
-            WEBSHOP_COSTS: 'webshop_monthly_costs'
+            WEBSHOP_COSTS: 'webshop_monthly_costs' 
         };
 
         const USER_ROLES = {
@@ -311,17 +225,17 @@
             { naam: "Aspis", kleur: "orange", border: "border-orange-500", bg: "bg-orange-500", text: "text-orange-400", btn: "bg-orange-600 hover:bg-orange-500" },
         ];
 
-
+        
         window.addEventListener('beforeunload', (event) => {
-            // Roept de handleLogout() functie op wanneer de gebruiker de pagina probeert te sluiten of te verversen.
-            // LET OP: DEZE FUNCTIE WERKT NIET ALTIJD VANWEGE BROWSERBEPERKINGEN (zie waarschuwing hierboven).
-
-            // Zorg ervoor dat de gebruiker wel is ingelogd
-            if (currentUser) {
-                // De handleLogout is een async functie, maar de browser wacht hier niet op.
-                handleLogout();
-            }
-        });
+    // Roept de handleLogout() functie op wanneer de gebruiker de pagina probeert te sluiten of te verversen.
+    // LET OP: DEZE FUNCTIE WERKT NIET ALTIJD VANWEGE BROWSERBEPERKINGEN (zie waarschuwing hierboven).
+    
+    // Zorg ervoor dat de gebruiker wel is ingelogd
+    if (currentUser) {
+        // De handleLogout is een async functie, maar de browser wacht hier niet op.
+        handleLogout();
+    }
+});
         // =========================================================================
         // --- INACTIVITY TIMEOUT (10 MINUTES) ---
         // =========================================================================
@@ -366,13 +280,12 @@
 
         // --- GLOBAL STATE ---
         let supabaseClient;
-        let currentUser = null;
-        let currentAuthUser = null;
+        let currentUser = null; 
+        let currentAuthUser = null; 
         let activeTab = 'dashboard';
         let membersData = [];
-        let counts = {};
+        let counts = {}; 
         let notes = {};
-        let autosaveTimer;
 
         // Webshop State
         let webshopDate = "";
@@ -389,7 +302,7 @@
         // Admin State
         let adminUsers = [];
         let adminAttendance = [];
-
+        
         // =========================================================================
         // --- CORE UTILITY FUNCTIONS (Defined early for access) ---
         // =========================================================================
@@ -402,7 +315,7 @@
             nextSunday.setDate(now.getDate() + daysUntilSunday);
             return nextSunday.toISOString().split('T')[0];
         }
-
+        
         function formatCurrency(amount) {
             return `€ ${parseFloat(amount).toFixed(2)}`;
         }
@@ -496,9 +409,9 @@
 
             // Update the form button text to indicate editing
             const formTitle = document.querySelector('#webshop-order-form h3');
-            if (formTitle) formTitle.innerText = `Bestelling Bewerken: ${department}`;
+            if(formTitle) formTitle.innerText = `Bestelling Bewerken: ${department}`;
             const saveButton = document.querySelector('#webshop-order-form button[type="submit"]');
-            if (saveButton) saveButton.innerText = `Bestelling Opslaan (Bewerkt)`;
+            if(saveButton) saveButton.innerText = `Bestelling Opslaan (Bewerkt)`;
 
             // Scroll to form to make it visible
             document.getElementById('webshop-order-container').scrollIntoView({ behavior: 'smooth' });
@@ -509,7 +422,7 @@
         // =========================================================================
         // --- DATA & ACTION HELPERS (Used by Renderers/Forms) ---
         // =========================================================================
-
+        
         // MEMBER ACTIONS
         // *** FUNCTIES VOOR LEDENBEHEER VERWIJDERD ***
         async function addMember(e) { e.preventDefault(); showToast("Ledenbeheer is uitgeschakeld.", "info"); }
@@ -522,39 +435,20 @@
             const { data, error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').eq('datum', date).single();
             AFDELINGEN_CONFIG.forEach(a => { counts[a.naam] = 0; notes[a.naam] = ""; });
             const generalNoteEl = document.getElementById('general-note');
-            if (generalNoteEl) generalNoteEl.value = "";
+            if(generalNoteEl) generalNoteEl.value = "";
             if (data) {
-                if (generalNoteEl) generalNoteEl.value = data.algemeneMededeling || "";
-                if (data.afdelingen) {
+                if(generalNoteEl) generalNoteEl.value = data.algemeneMededeling || "";
+                if(data.afdelingen) {
                     data.afdelingen.forEach(item => { counts[item.naam] = item.aantal; notes[item.naam] = item.opmerking; });
                 }
                 showToast("Gegevens geladen ✔️", "info");
             }
             updateUIFromState();
         }
+
         function updateCount(naam, delta) {
             counts[naam] = Math.max(0, (counts[naam] || 0) + delta);
             updateUIFromState();
-
-            // Roep de automatische opslaan functie aan
-            triggerAutosave();
-        }
-
-        // Nieuwe hulpfunctie die zorgt dat hij even wacht voor hij opslaat
-        function triggerAutosave() {
-            clearTimeout(autosaveTimer);
-
-            // Verander de knop tekst naar 'even geduld...'
-            const btn = document.getElementById('save-btn');
-            if (btn) {
-                // We maken hem even doorzichtig zodat je ziet dat hij bezig is
-                btn.classList.add('opacity-70');
-                btn.innerHTML = '<div class="loader mr-2"></div> Bezig...';
-            }
-
-            autosaveTimer = setTimeout(() => {
-                saveAttendance(true);
-            }, 1000);
         }
 
         function updateUIFromState() {
@@ -563,94 +457,54 @@
                 const safeName = a.naam.replace(/\s/g, '');
                 const val = counts[a.naam];
                 const el = document.getElementById(`count-${safeName}`);
-                if (el) el.innerText = val;
+                if(el) el.innerText = val;
                 const noteEl = document.getElementById(`note-${safeName}`);
                 // Only update note if it's currently populated from DB to prevent input loss during counting
-                if (noteEl && notes[a.naam]) noteEl.value = notes[a.naam];
+                if(noteEl && notes[a.naam]) noteEl.value = notes[a.naam]; 
                 total += val;
             });
             const totalDisplay = document.getElementById('total-count-display');
-            if (totalDisplay) totalDisplay.innerText = total;
+            if(totalDisplay) totalDisplay.innerText = total;
         }
 
-       async function saveAttendance(isAutosave = false) {
-    const date = document.getElementById('att-date').value;
-    const generalNote = document.getElementById('general-note') ? document.getElementById('general-note').value : "";
-    
-    // Check of het element bestaat voordat we de text pakken
-    const totalDisplay = document.getElementById('total-count-display');
-    const total = totalDisplay ? parseInt(totalDisplay.innerText) : 0;
-
-    // Notes updaten vanuit de inputs
-    AFDELINGEN_CONFIG.forEach(a => {
-        const safeName = a.naam.replace(/\s/g, '');
-        const el = document.getElementById(`note-${safeName}`);
-        if(el) notes[a.naam] = el.value;
-    });
-
-    const afdelingenData = AFDELINGEN_CONFIG.map(afd => ({ 
-        naam: afd.naam, 
-        aantal: counts[afd.naam] || 0, 
-        opmerking: notes[afd.naam] || "" 
-    }));
-
-    const { error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).upsert({
-        datum: date,
-        timestamp: new Date().toISOString(),
-        algemeneMededeling: generalNote,
-        totaalAantal: total,
-        afdelingen: afdelingenData
-    }, { onConflict: 'datum' });
-
-    // HIER GEBEURT DE MAGIE MET DE KNOP
-    const btn = document.getElementById('save-btn'); 
-
-    if (error) {
-        showToast("Fout bij opslaan", "error");
-        if(btn) {
-            btn.classList.remove('opacity-70');
-            btn.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5 mr-2"></i> Mislukt';
-            lucide.createIcons();
+        async function saveAttendance() {
+            const date = document.getElementById('att-date').value;
+            const generalNote = document.getElementById('general-note').value;
+            const total = parseInt(document.getElementById('total-count-display').innerText);
+            AFDELINGEN_CONFIG.forEach(a => {
+                const safeName = a.naam.replace(/\s/g, '');
+                const el = document.getElementById(`note-${safeName}`);
+                if(el) notes[a.naam] = el.value;
+            });
+            const afdelingenData = AFDELINGEN_CONFIG.map(afd => ({ naam: afd.naam, aantal: counts[afd.naam], opmerking: notes[afd.naam] }));
+            const { error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).upsert({
+                datum: date,
+                timestamp: new Date().toISOString(),
+                algemeneMededeling: generalNote,
+                totaalAantal: total,
+                afdelingen: afdelingenData
+            }, { onConflict: 'datum' });
+            if (error) showToast("Fout bij opslaan", "error");
+            else { showToast("Telling opgeslagen!", "success"); renderAttendance('overview'); }
         }
-    } else {
-        if (isAutosave) {
-            // Als het automatisch ging: Toon "Opgeslagen" in de knop
-            if(btn) {
-                btn.classList.remove('opacity-70');
-                // Verander tekst naar 'Opgeslagen'
-                btn.innerHTML = '<i data-lucide="check" class="w-5 h-5 mr-2"></i> Opgeslagen';
-                lucide.createIcons(); // Zorg dat het icoontje verschijnt
 
-                // Na 2 seconden de knop weer normaal maken
-                setTimeout(() => { 
-                    btn.innerHTML = '<i data-lucide="save" class="w-5 h-5 mr-2"></i> Opslaan'; 
-                    lucide.createIcons();
-                }, 2000);
-            }
-        } else {
-            // Als je zelf klikte: Gewone popup
-            showToast("Telling opgeslagen!", "success");
-            renderAttendance('overview');
-        }
-    }
-}
         async function deleteAttendance(date) {
-            if (confirm("Weet je zeker dat je deze telling permanent wilt verwijderen?")) {
+            if(confirm("Weet je zeker dat je deze telling permanent wilt verwijderen?")) {
                 const { error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).delete().eq('datum', date);
                 if (error) showToast("Fout bij verwijderen", "error");
                 else { showToast("Telling verwijderd", "success"); renderAttendance('overview'); }
             }
         }
-
+        
         // WEBSHOP HELPERS
         async function fetchWebshopData(date) {
             const { data: ordersData } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS).select('*').eq('date', date);
             webshopOrders = ordersData || [];
-
+            
             // Fetch Stock (ID 1 is the single stock record)
             const { data: stockData } = await supabaseClient.from(COLLECTION_NAMES.BROOD_STOCK_DOC).select('choco, jam').eq('id', 1).single();
             if (stockData) webshopStock = { choco: stockData.choco || 0, jam: stockData.jam || 0 };
-
+            
             // Fetch Prices (ID 1 is the single price record)
             const { data: pricesData } = await supabaseClient.from(COLLECTION_NAMES.BROOD_PRICES_DOC).select('whiteBread, brownBread, choco, jam').eq('id', 1).single();
             // Merge with defaults to ensure all keys exist
@@ -709,19 +563,19 @@
                 showToast("Kies een afdeling!", "error");
                 return;
             }
-
+            
             // Calculate total cost for the current order
             const totalCost = (white * webshopPrices.whiteBread) + (brown * webshopPrices.brownBread) + (choco * webshopPrices.choco) + (jam * webshopPrices.jam);
             const prevCost = existingOrder ? ((existingOrder.items.whiteBread || 0) * webshopPrices.whiteBread + (existingOrder.items.brownBread || 0) * webshopPrices.brownBread + (existingOrder.items.choco || 0) * webshopPrices.choco + (existingOrder.items.jam || 0) * webshopPrices.jam) : 0;
             const costDiff = totalCost - prevCost; // Positive diff = more money owed/more items, Negative diff = less money owed/fewer items
 
             const orderData = {
-                id: `${webshopDate}_${dept}`,
-                date: webshopDate,
-                department: dept,
+                id: `${webshopDate}_${dept}`, 
+                date: webshopDate, 
+                department: dept, 
                 items: { whiteBread: white, brownBread: brown, choco: choco, jam: jam },
-                note: document.getElementById('order-note').value,
-                email: email,
+                note: document.getElementById('order-note').value, 
+                email: email, 
                 total_cost: totalCost, // Store total cost on order (for simpler log entries)
                 lastEditedBy: currentUser.name
             };
@@ -754,7 +608,7 @@
                             showToast("Onvoldoende voorraad. Bestelling niet geplaatst/bewerkt.", "error");
                             return; // Stop execution
                         }
-
+                        
                         const { error: stockUpdateError } = await supabaseClient
                             .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
                             .update({ choco: newChoco, jam: newJam })
@@ -767,8 +621,8 @@
 
                 // 2. Place/Update Order (Upsert)
                 const { error: orderError } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS).upsert(orderData);
-                if (orderError) throw orderError;
-
+                if(orderError) throw orderError;
+                
                 // 3. Log Financial Change (Net change only)
                 if (Math.abs(costDiff) > 0.01) { // Only log if there's a significant financial change
                     const type = costDiff >= 0 ? 'income' : 'expense'; // New cost is an 'income' to the chirokas from the afdeling, less cost is an 'expense' (refund)
@@ -776,10 +630,10 @@
                     await addWebshopTransaction(dept, costDiff, type, desc, webshopDate);
                 }
 
-                showToast("Bestelling opgeslagen!" + (stockUpdate ? " (Voorraad bijgewerkt)" : ""), "success");
-                renderWebshop('order');
+                showToast("Bestelling opgeslagen!" + (stockUpdate ? " (Voorraad bijgewerkt)" : ""), "success"); 
+                renderWebshop('order'); 
             } catch (error) {
-                showToast(`Fout bij bestelling: ${error.message}`, "error");
+                showToast(`Fout bij bestelling: ${error.message}`, "error"); 
             }
         }
 
@@ -817,7 +671,7 @@
             try {
                 const orderToDelete = webshopOrders.find(o => o.department === dept && o.date === date);
                 if (!orderToDelete) throw new Error("Bestelling niet gevonden.");
-
+                
                 const totalCost = orderToDelete.total_cost || 0; // Use stored total cost
 
                 // 1. Revert Stock
@@ -826,14 +680,14 @@
 
                 if (chocoRevert > 0 || jamRevert > 0) {
                     const { data: currentStock } = await supabaseClient
-                        .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
-                        .select('choco, jam')
-                        .eq('id', 1)
-                        .single();
+                            .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
+                            .select('choco, jam')
+                            .eq('id', 1)
+                            .single();
 
                     const newChoco = (currentStock.choco || 0) + chocoRevert;
                     const newJam = (currentStock.jam || 0) + jamRevert;
-
+                    
                     await supabaseClient
                         .from(COLLECTION_NAMES.BROOD_STOCK_DOC)
                         .update({ choco: newChoco, jam: newJam })
@@ -846,7 +700,7 @@
                     .eq('id', `${date}_${dept}`);
 
                 if (deleteError) throw deleteError;
-
+                
                 // 3. Log Financial Change (Revert cost as an expense/refund)
                 if (totalCost > 0) {
                     await addWebshopTransaction(dept, -totalCost, 'expense', `Webshop Annulatie: ${dept} op ${new Date(date).toLocaleDateString('nl-BE')}`, date);
@@ -861,14 +715,14 @@
 
         async function saveStockAndPrices(e) {
             e.preventDefault();
-
+            
             const stockChoco = parseInt(document.getElementById('stock-choco').value);
             const stockJam = parseInt(document.getElementById('stock-jam').value);
             const priceWhite = parseFloat(document.getElementById('price-white').value);
             const priceBrown = parseFloat(document.getElementById('price-brown').value);
             const priceChoco = parseFloat(document.getElementById('price-choco').value);
             const priceJam = parseFloat(document.getElementById('price-jam').value);
-
+            
             if (isNaN(priceWhite) || isNaN(priceBrown) || isNaN(priceChoco) || isNaN(priceJam)) {
                 showToast("Gelieve alle prijzen in te vullen", "error");
                 return;
@@ -915,7 +769,7 @@
                 .lt('date', endOfMonth);
 
             // 2. Fetch prices (ensure webshopPrices is up to date with DB data)
-            await fetchWebshopData(webshopDate);
+            await fetchWebshopData(webshopDate); 
 
             const totals = {};
             AFDELINGEN_CONFIG.forEach(a => {
@@ -939,7 +793,7 @@
                     }
                 });
             }
-
+            
             // Save monthly summary to dedicated collection (for historical finance reporting)
             const monthlyData = AFDELINGEN_CONFIG.map(a => ({
                 month: month,
@@ -948,11 +802,11 @@
                 details: totals[a.naam]
             }));
             // Upsert based on month and afdeling (composite key approach)
-            await supabaseClient.from(COLLECTION_NAMES.WEBSHOP_COSTS).upsert(monthlyData, { onConflict: 'month,afdeling' });
+           await supabaseClient.from(COLLECTION_NAMES.WEBSHOP_COSTS).upsert(monthlyData, { onConflict: 'month,afdeling' });
 
             return { totals, costs: Object.fromEntries(Object.entries(totals).map(([dept, data]) => [dept, data.totalCost])), month };
         }
-
+        
         async function exportMonthlyCosts(month) {
             const results = await calculateMonthlyCosts(month);
             const totals = results.totals;
@@ -985,10 +839,10 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
+            
             showToast("Export gestart! CSV-bestand gedownload.", "success");
         }
-
+        
         // FINANCE ACTIONS
         async function saveWeeklyFinances() {
             const date = document.getElementById('fin-date').value;
@@ -999,7 +853,7 @@
                 const safeName = afd.naam.replace(/\s/g, '');
                 const amountEl = document.getElementById(`fin-inc-${safeName}`);
                 const remarkEl = document.getElementById(`fin-rem-${safeName}`);
-
+                
                 const amount = parseFloat(amountEl.value);
                 if (amountEl && amount > 0) {
                     transactions.push({
@@ -1017,15 +871,15 @@
             // 2. Process Cost
             const costDesc = document.getElementById('fin-cost-desc').value;
             const costAmount = parseFloat(document.getElementById('fin-cost-amount').value);
-
+            
             if (!isNaN(costAmount) && costAmount > 0) {
                 transactions.push({
                     description: costDesc || 'Algemene Kosten (Vieruurtje/Materiaal)',
                     amount: costAmount,
                     type: 'expense',
-                    category: '4uurtje',
+                    category: '4uurtje', 
                     user: currentUser.name,
-                    afdeling: 'Hoofdkas',
+                    afdeling: 'Hoofdkas', 
                     created_at: new Date(date).toISOString()
                 });
             }
@@ -1052,8 +906,8 @@
             const cat = document.getElementById('trans-cat').value;
             const dept = document.getElementById('trans-dept').value;
 
-            if (!dept) { showToast("Kies een afdeling!", "error"); return; }
-            if (isNaN(amount) || amount <= 0) { showToast("Voer een geldig bedrag in!", "error"); return; }
+            if(!dept) { showToast("Kies een afdeling!", "error"); return; }
+            if(isNaN(amount) || amount <= 0) { showToast("Voer een geldig bedrag in!", "error"); return; }
 
             const { error } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).insert({
                 description: desc,
@@ -1070,13 +924,13 @@
         }
 
         async function deleteTransaction(id) {
-            if (confirm("Weet je zeker dat je deze transactie permanent wilt verwijderen?")) {
+            if(confirm("Weet je zeker dat je deze transactie permanent wilt verwijderen?")) {
                 const { error } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).delete().eq('id', id);
                 if (error) showToast("Fout bij verwijderen", "error");
                 else { showToast("Verwijderd", "success"); renderFinances(financesActiveTab); }
             }
         }
-
+        
         // ADMIN ACTIONS
         async function fetchAdminUsers() {
             const { data, error } = await supabaseClient
@@ -1104,7 +958,7 @@
         // =========================================================================
         // --- ALL APPLICATION RENDERERS (Grouped for scope access) ---
         // =========================================================================
-
+        
         // --- DASHBOARD RENDERER ---
         async function renderDashboard() {
             const nextSunday = getNextSunday();
@@ -1113,7 +967,7 @@
             const formattedSunday = nextSundayDate.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' });
 
             const { count: orderCount } = await supabaseClient.from(COLLECTION_NAMES.BROOD_ORDERS).select('*', { count: 'exact', head: true }).eq('date', nextSunday);
-
+            
             const { data: attendanceData } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('totaalAantal, datum').order('datum', { ascending: false }).limit(2);
             let attendanceLabel = "Nog geen data";
             let attendanceTrend = "Geen trend";
@@ -1130,7 +984,7 @@
             }
 
             const role = USER_ROLES[currentUser.role];
-
+            
             const html = `
             <div class="mb-8 p-6 sm:p-10 rounded-[2rem] bg-gradient-to-br from-[#1e2330] to-[#12141c] border border-gray-800/50 relative overflow-hidden shadow-2xl group">
                 <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none animate-pulse-slow"></div>
@@ -1269,7 +1123,7 @@
             const isAuthAdmin = role.canDoAdmin;
 
             if (!role.canDoAttendance && mode === 'input') mode = 'overview';
-
+            
             let html = `
             <div class="flex gap-4 mb-6">
                 ${role.canDoAttendance ? `<button onclick="renderAttendance('input')" class="flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center ${mode === 'input' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-[#181b25] text-gray-400 hover:bg-[#1f2330]'}"><i data-lucide="edit-3" class="w-4 h-4 mr-2"></i> Nieuwe Telling</button>` : ''}
@@ -1300,7 +1154,7 @@
                             <span id="count-${afd.naam.replace(/\s/g, '')}" class="text-4xl font-extrabold text-gray-200 w-16 text-center tabular-nums">0</span>
                             <button onclick="updateCount('${afd.naam}', 1)" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg active:scale-95 ${afd.btn}">+</button>
                         </div>
-                        <textarea oninput="triggerAutosave()" id="note-${afd.naam.replace(/\s/g, '')}" placeholder="Opmerking..." rows="2" class="w-full bg-[#0f111a] border border-gray-700/50 rounded-lg p-2 text-sm text-gray-300 focus:outline-none resize-none mt-auto"></textarea>
+                        <textarea id="note-${afd.naam.replace(/\s/g, '')}" placeholder="Opmerking..." rows="2" class="w-full bg-[#0f111a] border border-gray-700/50 rounded-lg p-2 text-sm text-gray-300 focus:outline-none resize-none mt-auto"></textarea>
                     </div>`).join('')}
                 </div>
                 
@@ -1309,15 +1163,15 @@
                     <textarea id="general-note" placeholder="Type hier..." class="w-full bg-[#0f111a] border border-gray-700/50 rounded-xl p-4 text-gray-300 focus:outline-none min-h-[100px] mb-6"></textarea>
                     <div class="flex justify-end"><button onclick="saveAttendance()" class="flex items-center justify-center px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-lg transition-all"><i data-lucide="save" class="w-5 h-5 mr-2"></i> Opslaan</button></div>
                 </div>`;
-
+                
                 document.getElementById('view-telling').innerHTML = html;
                 loadAttendanceDate(nextSunday); // Initial fetch
             } else {
                 // Overview Mode with Grouping (Sleeker look)
                 const { data, error } = await supabaseClient.from(COLLECTION_NAMES.AANWEZIGHEDEN).select('*').order('datum', { ascending: false });
                 if (error) { showToast("Fout bij laden historiek", "error"); return; }
-
-                if (!data || data.length === 0) {
+                
+                if(!data || data.length === 0) {
                     document.getElementById('view-telling').innerHTML = html + '<div class="text-center text-gray-500 mt-10">Geen historiek gevonden.</div>';
                     lucide.createIcons();
                     return;
@@ -1327,14 +1181,14 @@
                 data.forEach(item => {
                     const dateObj = new Date(item.datum);
                     const monthName = dateObj.toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' });
-
+                    
                     if (!grouped[monthName]) grouped[monthName] = [];
                     grouped[monthName].push(item);
                 });
 
                 // Generate HTML - Sleeker view
                 let listHtml = '<div class="space-y-6 animate-in fade-in zoom-in duration-300">';
-
+                
                 Object.keys(grouped).forEach(month => {
                     const items = grouped[month];
                     const monthTotal = items.reduce((acc, curr) => acc + (curr.totaalAantal || 0), 0);
@@ -1353,10 +1207,10 @@
                             </summary>
                             <div class="p-6 space-y-4 bg-[#13161f]"> 
                                 ${items.map(item => {
-                        const date = new Date(item.datum);
-                        const dateStr = date.toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' });
-
-                        const sectionGrid = item.afdelingen ? item.afdelingen.filter(a => a.aantal > 0).map(a => `
+                                    const date = new Date(item.datum);
+                                    const dateStr = date.toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' });
+                                    
+                                    const sectionGrid = item.afdelingen ? item.afdelingen.filter(a => a.aantal > 0).map(a => `
                                         <div class="bg-[#1f2330] p-3 rounded-lg border border-gray-700/50 flex flex-col justify-between h-full">
                                             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">${a.naam}</span>
                                             <span class="text-2xl font-extrabold text-white mt-1">${a.aantal}</span>
@@ -1364,7 +1218,7 @@
                                         </div>
                                     `).join('') : '';
 
-                        return `
+                                    return `
                                         <div class="bg-[#181b25] border border-gray-700/50 rounded-xl overflow-hidden shadow-sm">
                                                    <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-gray-700/50">
                                                        <h4 class="text-lg font-bold text-white">${dateStr}</h4>
@@ -1388,12 +1242,12 @@
                                                        </details>
                                                    </div>
                                         </div>`;
-                    }).join('')}
+                                    }).join('')}
                             </div>
                           </details>
                         </div>`;
                 });
-
+                
                 listHtml += '</div>';
                 document.getElementById('view-telling').innerHTML = html + listHtml;
             }
@@ -1409,18 +1263,18 @@
             }
             let allTotals = []; let afdelingStats = {};
             AFDELINGEN_CONFIG.forEach(conf => { afdelingStats[conf.naam] = { total: 0, count: 0, max: 0, min: 9999, last: 0, prev: 0 }; });
-
+            
             snapshotData.forEach((data, index) => {
                 let dailyTotal = 0;
                 if (data.afdelingen) {
                     data.afdelingen.forEach(afd => {
                         if (afdelingStats[afd.naam]) {
                             if (index === snapshotData.length - 2) { afdelingStats[afd.naam].prev = afd.aantal; }
-
-                            afdelingStats[afd.naam].total += afd.aantal; afdelingStats[afd.naam].count++;
+                            
+                            afdelingStats[afd.naam].total += afd.aantal; afdelingStats[afd.naam].count++; 
                             afdelingStats[afd.naam].max = Math.max(afdelingStats[afd.naam].max, afd.aantal);
-                            if (afd.aantal > 0) afdelingStats[afd.naam].min = Math.min(afdelingStats[afd.naam].min, afd.aantal);
-
+                            if(afd.aantal > 0) afdelingStats[afd.naam].min = Math.min(afdelingStats[afd.naam].min, afd.aantal);
+                            
                             if (index === snapshotData.length - 1) {
                                 afdelingStats[afd.naam].last = afd.aantal;
                             }
@@ -1437,14 +1291,14 @@
             const maxAttendance = Math.max(...allTotals.map(t => t.count), 0);
             const chartData = AFDELINGEN_CONFIG.map(conf => {
                 const stat = afdelingStats[conf.naam];
-                if (stat.min === 9999) stat.min = 0;
+                if(stat.min === 9999) stat.min = 0;
                 const avg = stat.count > 0 ? (stat.total / stat.count).toFixed(1) : 0;
-
+                
                 // Trend Calculation vs AVG
                 let trendIcon = 'minus';
                 let trendColor = 'text-gray-400';
-                if (stat.last > avg) { trendIcon = 'trending-up'; trendColor = 'text-emerald-400'; }
-                else if (stat.last < avg) { trendIcon = 'trending-down'; trendColor = 'text-rose-400'; }
+                if(stat.last > avg) { trendIcon = 'trending-up'; trendColor = 'text-emerald-400'; }
+                else if(stat.last < avg) { trendIcon = 'trending-down'; trendColor = 'text-rose-400'; }
 
                 // Diff vs Prev
                 const diff = stat.last - stat.prev;
@@ -1541,7 +1395,7 @@
             if (subTab === 'order') {
                 // Ensure date is set to next Sunday if tab is explicitly opened, unless already set by editOrder
                 if (document.getElementById('view-webshop').classList.contains('hidden-view')) {
-                    webshopDate = getNextSunday();
+                     webshopDate = getNextSunday();
                 }
             }
 
@@ -1555,10 +1409,10 @@
                 ${canDoWebshopAdmin ? `<button onclick="renderWebshop('stock')" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'stock' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="boxes" class="mr-2 inline w-4 h-4"></i> Voorraad</button>` : ''}
                 ${canViewFinances ? `<button onclick="renderWebshop('costs')" class="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'costs' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="euro" class="mr-2 inline w-4 h-4"></i> Kosten</button>` : ''}
             </div>`;
-
+            
             let content = '';
 
-            if (subTab === 'order') {
+            if(subTab === 'order') {
                 const existingOrdersHtml = webshopOrders.map(o => `
                     <div class="bg-[#1f2330] p-4 rounded-xl border border-gray-700 mb-2 shadow-md flex justify-between items-center group/order">
                         <div>
@@ -1608,7 +1462,8 @@
                             </div>
                             
                             <textarea id="order-note" placeholder="Opmerking (optioneel)" class="w-full bg-[#0f111a] text-white border border-gray-700 rounded-xl p-3"></textarea>
-<button id="save-btn" onclick="saveAttendance()" class="flex items-center justify-center px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-lg transition-all"><i data-lucide="save" class="w-5 h-5 mr-2"></i> Opslaan</button>                        </form>
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95">Bestelling Opslaan</button>
+                        </form>
                     </div>
                     <div>
                         <h3 class="text-white font-bold mb-4 flex items-center"><i data-lucide="list-ordered" class="w-5 h-5 mr-2 text-rose-400"></i> Bestellingen op ${new Date(webshopDate).toLocaleDateString('nl-BE')}</h3>
@@ -1690,7 +1545,7 @@
             } else if (subTab === 'costs') {
                 webshopCostMonth = webshopCostMonth || new Date().toISOString().slice(0, 7);
                 const results = await calculateMonthlyCosts(webshopCostMonth);
-
+                
                 const tableRows = AFDELINGEN_CONFIG.map(afd => {
                     const data = results.totals[afd.naam] || { whiteBread: 0, brownBread: 0, choco: 0, jam: 0, totalCost: 0 };
                     return `
@@ -1763,7 +1618,7 @@
             }
             financesActiveTab = subTab;
             const container = document.getElementById('view-financien');
-
+            
             // Nav
             const nav = `
             <div class="flex flex-wrap gap-3 mb-6 bg-[#181b25] p-1.5 rounded-2xl border border-gray-800 w-fit">
@@ -1893,7 +1748,7 @@
                     </div>`;
             } else if (subTab === 'log') {
                 const { data: finances } = await supabaseClient.from(COLLECTION_NAMES.FINANCES).select('*').order('created_at', { ascending: false });
-
+                
                 // CALCULATE VIRTUAL WALLETS
                 const wallets = {};
                 AFDELINGEN_CONFIG.forEach(a => wallets[a.naam] = 0);
@@ -2088,7 +1943,7 @@
                 currentUser = { ...data, id: user.id, email: user.email };
                 showAppLayout();
             } else {
-                await supabaseClient.auth.signOut();
+                    await supabaseClient.auth.signOut();
                 showToast("Geen rol gevonden voor deze gebruiker.", "error");
                 showAuthView();
             }
@@ -2108,10 +1963,10 @@
             document.getElementById('app-layout').classList.add('hidden-view');
         }
 
-        function showAppLayout() {
+       function showAppLayout() {
             document.getElementById('auth-view').classList.add('hidden-view');
             document.getElementById('app-layout').classList.remove('hidden-view');
-
+            
             document.getElementById('user-name-display').innerText = currentUser.name || currentUser.email.split('@')[0];
             document.getElementById('user-role-display').innerText = USER_ROLES[currentUser.role]?.label || currentUser.role;
             document.getElementById('user-avatar').innerText = (currentUser.name || 'U').charAt(0).toUpperCase();
@@ -2119,14 +1974,14 @@
 
             renderSidebar();
             switchTab('dashboard');
-
+            
             // NIEUWE REGEL: Start de inactiviteitstimer hier!
             setupInactivityDetection();
-        }
+}
         function renderSidebar() {
             const nav = document.getElementById('sidebar-nav');
             const role = USER_ROLES[currentUser.role];
-
+            
             const menuItems = [
                 { id: 'dashboard', icon: 'layout-grid', label: 'Dashboard', access: true },
                 // Ledenbeheer is verwijderd
@@ -2164,7 +2019,7 @@
 
                 const onclick = item.action ? `onclick="handleLogout()"` : (item.restricted && !item.access ? '' : `onclick="switchTab('${item.id}')"`);
                 const iconColor = isActive ? 'text-indigo-400' : (item.color ? 'group-hover:text-current' : 'text-gray-500 group-hover:text-gray-300');
-
+                
                 const lockIcon = item.restricted ? (item.access ? `<i data-lucide="lock-open" class="w-4 h-4 ml-auto text-emerald-500"></i>` : `<i data-lucide="lock" class="w-4 h-4 ml-auto text-rose-500"></i>`) : '';
 
                 // SKIP LEDEN IN SIDEBAR NAV
@@ -2185,15 +2040,15 @@
         async function switchTab(tabId) {
             activeTab = tabId;
             renderSidebar();
-
+            
             document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden-view'));
-
+            
             const target = document.getElementById(`view-${tabId}`);
             if (target) {
                 target.classList.remove('hidden-view');
                 target.innerHTML = '<div class="flex justify-center p-10"><div class="loader"></div></div>';
-
-                switch (tabId) {
+                
+                switch(tabId) {
                     case 'dashboard': await renderDashboard(); break;
                     case 'leden': await renderMembers(); break; // Renders the disabled message
                     case 'telling': await renderAttendance(); break;
@@ -2204,20 +2059,20 @@
                     case 'profiel': renderProfile(); break;
                 }
             }
-
+            
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.remove('translate-x-0');
             sidebar.classList.add('-translate-x-full');
             overlay.classList.remove('opacity-100', 'pointer-events-auto');
             overlay.classList.add('opacity-0', 'pointer-events-none');
-            if (window.innerWidth >= 1024) {
+            if(window.innerWidth >= 1024) {
                 sidebar.classList.remove('-translate-x-full');
             }
         }
 
         function openWebshopTab(subTab) {
-            if (subTab === 'order') {
+            if(subTab === 'order') {
                 // Reset date to next Sunday when opening the order tab
                 webshopDate = getNextSunday();
             }
@@ -2230,7 +2085,7 @@
         // =========================================================================
         // --- INITIALIZATION ---
         // =========================================================================
-        window.onload = function () {
+        window.onload = function() {
             webshopDate = getNextSunday();
             lucide.createIcons();
             initSupabase();
@@ -2238,10 +2093,10 @@
         };
 
         function initSupabase() {
-            if (typeof window.supabase !== 'undefined') {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        }
+    if (typeof window.supabase !== 'undefined') {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+}
 
         // Sidebar mobile toggles
         document.getElementById('open-sidebar').addEventListener('click', () => {
@@ -2267,5 +2122,4 @@
 
     </script>
 </body>
-
 </html>
